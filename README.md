@@ -11,9 +11,13 @@ policy grounded in measurement rather than folklore, and a check that tells you
 which account is about to be billed. That is what this adds.
 
 ```bash
-pip install conclave
+pip install git+https://github.com/YashShelar007/conclave@main
 conclave doctor          # what's set up, and whose account pays
 ```
+
+> Not on PyPI yet — the name `conclave` there belongs to an unrelated project,
+> so install from git until a distribution name is settled. The import name and
+> the command are `conclave` either way.
 
 ```python
 from conclave import ask, ask_json
