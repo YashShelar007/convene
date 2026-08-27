@@ -1,5 +1,5 @@
 name: Tool problem
-description: conclave itself is broken, or does something it shouldn't
+description: convene itself is broken, or does something it shouldn't
 labels: ["bug"]
 body:
   - type: markdown
@@ -8,20 +8,20 @@ body:
         **If a call started billing API credits instead of your subscription,
         say so in the title** — that is the most serious class of bug here.
 
-        Please run `conclave doctor` first and paste the output; it answers
+        Please run `convene doctor` first and paste the output; it answers
         most of what would otherwise be a round trip.
   - type: textarea
     id: doctor
     attributes:
-      label: "`conclave doctor` output"
+      label: "`convene doctor` output"
       description: Redact the email if you like — the plan and auth method are what matter.
       render: text
     validations: { required: true }
   - type: input
     id: version
     attributes:
-      label: conclave and Python versions
-      placeholder: "conclave 0.1.0, Python 3.12.4"
+      label: convene and Python versions
+      placeholder: "convene 0.1.0, Python 3.12.4"
     validations: { required: true }
   - type: textarea
     id: what-happened

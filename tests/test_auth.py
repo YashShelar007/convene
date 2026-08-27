@@ -8,8 +8,8 @@ from __future__ import annotations
 
 import pytest
 
-from conclave.auth import API_KEY_VARS, AuthMode, subprocess_env
-from conclave.config import SANDBOX_DIR, SANDBOX_HOME
+from convene.auth import API_KEY_VARS, AuthMode, subprocess_env
+from convene.config import SANDBOX_DIR, SANDBOX_HOME
 
 
 @pytest.mark.parametrize("mode", [AuthMode.LOGIN, AuthMode.SANDBOX_TOKEN])
@@ -42,15 +42,15 @@ def test_sandbox_mode_isolates_home_and_config():
 
 def test_default_is_a_subscription_mode():
     """An API key must never be reachable by accident."""
-    from conclave.auth import DEFAULT_AUTH, SUBSCRIPTION_MODES
+    from convene.auth import DEFAULT_AUTH, SUBSCRIPTION_MODES
 
     assert DEFAULT_AUTH in SUBSCRIPTION_MODES
     assert AuthMode.API_KEY not in SUBSCRIPTION_MODES
 
 
 def test_assert_account_rejects_non_subscription_auth(monkeypatch):
-    from conclave import auth
-    from conclave.errors import AuthError
+    from convene import auth
+    from convene.errors import AuthError
 
     monkeypatch.setattr(
         auth, "login_status", lambda: {"loggedIn": True, "authMethod": "apiKey"}
@@ -60,8 +60,8 @@ def test_assert_account_rejects_non_subscription_auth(monkeypatch):
 
 
 def test_assert_account_rejects_the_wrong_email(monkeypatch):
-    from conclave import auth
-    from conclave.errors import AuthError
+    from convene import auth
+    from convene.errors import AuthError
 
     monkeypatch.setattr(
         auth,
@@ -74,8 +74,8 @@ def test_assert_account_rejects_the_wrong_email(monkeypatch):
 
 
 def test_assert_account_rejects_logged_out(monkeypatch):
-    from conclave import auth
-    from conclave.errors import AuthError
+    from convene import auth
+    from convene.errors import AuthError
 
     monkeypatch.setattr(auth, "login_status", lambda: {"loggedIn": False})
     with pytest.raises(AuthError, match="Not logged in"):

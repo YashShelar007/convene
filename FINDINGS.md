@@ -7,13 +7,13 @@ is the product — the code is a thin wrapper around these facts.
 Reproduce any of it with:
 
 ```bash
-conclave bench
+convene bench
 ```
 
 **Environment for every measurement below unless stated otherwise:** Claude
 Code **2.1.237**, macOS 15 (arm64), subscription auth (`authMethod:
 claude.ai`, Max plan), model `claude-sonnet-5`, `effort=low`, calls locked down
-with the flag set in [`runtime.py`](src/conclave/runtime.py).
+with the flag set in [`runtime.py`](src/convene/runtime.py).
 
 ---
 
@@ -35,7 +35,7 @@ So the API-key requirement belongs to `--bare`, not to `-p`. A plain `-p` run
 reads your OAuth login normally. Every call in this document was made with no
 API key in the environment (n≈150 calls, all succeeded).
 
-**This is why conclave never passes `--bare`,** despite it being faster to
+**This is why convene never passes `--bare`,** despite it being faster to
 start and despite Anthropic recommending it for scripted calls.
 
 ### The forward risk
@@ -46,7 +46,7 @@ The same page says:
 > the default for `-p` in a future release.
 
 If that lands and there is no opt-out, subscription auth through this library
-breaks. `conclave doctor` probes for it with a real call rather than comparing
+breaks. `convene doctor` probes for it with a real call rather than comparing
 version strings, because the failure will not announce itself.
 
 ---
@@ -117,7 +117,7 @@ repetitive text tokenises unusually well. The structured `triage` prompt —
 markdown headings, short lines, lists — measured **2.2 chars/token** (2976
 chars against ~1354 system tokens).
 
-`conclave experts lint` uses 2.9, which therefore *under*-estimates real
+`convene experts lint` uses 2.9, which therefore *under*-estimates real
 prompts. That is deliberate: a false "might be too short to cache" warning
 costs nothing, while false reassurance costs money on every call.
 
@@ -138,10 +138,10 @@ Throughput climbs from 0.16 to 1.65 calls/second — about **10x** — with zero
 rate-limit errors. Latency degrades gracefully rather than failing.
 
 **This is not a discovered ceiling.** Nobody has found where it actually
-breaks; 20 is simply the largest burst tested. conclave defaults to 12 as a
+breaks; 20 is simply the largest burst tested. convene defaults to 12 as a
 deliberate midpoint that leaves headroom for the interactive Claude Code
 sharing the same rate-limit pool. If you find the real limit,
-[open an issue](https://github.com/YashShelar007/conclave/issues).
+[open an issue](https://github.com/YashShelar007/convene/issues).
 
 Each concurrent call is a full Node process, so local RAM becomes the binding
 constraint before long.
@@ -175,7 +175,7 @@ Session       0.000990 -> 0.001130 -> 0.001300    per call
 ```
 
 Summing the raw field across a live session's turns **triple-counts**.
-conclave's `Turn.cost_usd` is always the incremental cost; the raw figure stays
+convene's `Turn.cost_usd` is always the incremental cost; the raw figure stays
 on `turn.result.cost_usd`. Pinned by
 [`tests/test_sessions.py`](tests/test_sessions.py).
 
@@ -208,7 +208,7 @@ Do not "simplify" it to `subtype == "success"`. Pinned by
 ## 6. The lockdown flags are worth ~88x
 
 Measured on an identical one-word prompt (n=1, carried forward from this
-project's predecessor and re-checkable with `conclave doctor --lockdown`):
+project's predecessor and re-checkable with `convene doctor --lockdown`):
 
 ```
 locked down   in=  144   cache_create=    0   cost=$0.00051
@@ -220,7 +220,7 @@ definition, your skills, MCP servers, project settings and `CLAUDE.md`. The gap
 depends on how much you have configured, so re-measure on your own machine:
 
 ```bash
-conclave doctor --lockdown
+convene doctor --lockdown
 ```
 
 ---

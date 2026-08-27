@@ -1,6 +1,6 @@
 """Diagnostics: is this set up, and which account is about to be billed?
 
-`conclave doctor` exists because the two worst failures in this design are both
+`convene doctor` exists because the two worst failures in this design are both
 silent. An API key that outranks your login bills API credits while succeeding
 normally -- anthropics/claude-code#37686 reports $1,800 in two days from that.
 And an auth failure returns ``subtype: "success"`` with exit code 0.
@@ -30,7 +30,7 @@ from .auth import (
     login_status,
 )
 from .config import CHEAP_MODEL, LEDGER_FILE, LOG_FILE, SANDBOX_DIR, STATE_ROOT
-from .errors import ConclaveError
+from .errors import ConveneError
 from .runtime import Call, run_sync
 
 Status = Literal["ok", "warn", "fail"]
@@ -74,7 +74,7 @@ def check_api_key_contamination() -> Check:
     return Check(
         "api key",
         "warn",
-        f"{', '.join(present)} is set. conclave strips it from every "
+        f"{', '.join(present)} is set. convene strips it from every "
         f"subscription call, so your calls are safe -- but a bare `claude -p` "
         f"run by hand, or any other tool, would bill API credits.",
         f"unset {' '.join(present)}",
@@ -153,7 +153,7 @@ def check_probe(auth_mode: AuthMode = DEFAULT_AUTH) -> Check:
             ),
             auth_mode=auth_mode,
         )
-    except ConclaveError as e:
+    except ConveneError as e:
         message = str(e)
         if "Not logged in" in message or "login" in message.lower():
             return Check(
@@ -260,7 +260,7 @@ def run_checks(
     if lockdown:
         try:
             checks.append(check_lockdown(auth_mode))
-        except ConclaveError as e:
+        except ConveneError as e:
             checks.append(Check("lockdown value", "warn", str(e)[:200]))
 
     checks.append(

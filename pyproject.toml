@@ -3,7 +3,7 @@ requires = ["hatchling"]
 build-backend = "hatchling.build"
 
 [project]
-name = "conclave"
+name = "convene"
 version = "0.1.0"
 description = "Run Claude Code headlessly as a local inference layer: named experts, multi-turn sessions, bounded concurrency."
 readme = "README.md"
@@ -29,15 +29,15 @@ dependencies = []
 dev = ["pytest>=8", "pytest-asyncio>=0.24", "ruff>=0.6"]
 
 [project.scripts]
-conclave = "conclave.cli:main"
+convene = "convene.cli:main"
 
 [project.urls]
-Homepage = "https://github.com/YashShelar007/conclave"
-Issues = "https://github.com/YashShelar007/conclave/issues"
-Findings = "https://github.com/YashShelar007/conclave/blob/main/FINDINGS.md"
+Homepage = "https://github.com/YashShelar007/convene"
+Issues = "https://github.com/YashShelar007/convene/issues"
+Findings = "https://github.com/YashShelar007/convene/blob/main/FINDINGS.md"
 
 [tool.hatch.build.targets.wheel]
-packages = ["src/conclave"]
+packages = ["src/convene"]
 
 [tool.pytest.ini_options]
 testpaths = ["tests"]

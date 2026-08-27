@@ -9,8 +9,8 @@ import json
 
 import pytest
 
-from conclave.errors import CLIError
-from conclave.runtime import Call, build_argv, decode_envelope
+from convene.errors import CLIError
+from convene.runtime import Call, build_argv, decode_envelope
 
 
 def test_lockdown_flags_present_by_default():
@@ -139,3 +139,23 @@ def test_null_cost_does_not_crash():
         {"subtype": "success", "is_error": False, "result": "x", "total_cost_usd": None}
     )
     assert decode_envelope(envelope, _CALL, 1.0).cost_usd == 0.0
+
+
+def test_back_compat_result_aliases():
+    """Existing callers reach for the predecessor's field names.
+
+    The old ClaudeResult exposed `result_text` and `total_cost_usd`. Dropping
+    them would break every project importing through the claude_cli shim with
+    an AttributeError, which is exactly what the shim exists to prevent.
+    """
+    envelope = json.dumps(
+        {
+            "subtype": "success",
+            "is_error": False,
+            "result": "Paris",
+            "total_cost_usd": 0.00123,
+        }
+    )
+    result = decode_envelope(envelope, _CALL, 1.0)
+    assert result.result_text == result.text == "Paris"
+    assert result.total_cost_usd == result.cost_usd == pytest.approx(0.00123)

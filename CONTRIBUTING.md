@@ -59,12 +59,12 @@ highest-value ones:
 Reproduce the existing numbers first:
 
 ```bash
-conclave bench
+convene bench
 ```
 
 ## Scope: what will be declined
 
-conclave runs the first-party `claude` binary locally, under the user's own
+convene runs the first-party `claude` binary locally, under the user's own
 login. It is not a proxy. Three properties are load-bearing, and PRs that
 change any of them will be declined regardless of quality:
 
@@ -96,6 +96,25 @@ Each corresponds to a way this has already gone wrong, or would.
   in a tree of transitive dependencies. `tomllib` is why the floor is 3.11.
 - **Normalise costs, don't pass them through.** Live sessions report cumulative
   cost, durable ones report per-call. `Turn.cost_usd` is always incremental.
+
+## Releasing
+
+Releases go out through PyPI Trusted Publishing — there is no API token in this
+repo. The one-time PyPI setup is documented at the top of
+[`.github/workflows/release.yml`](.github/workflows/release.yml).
+
+After that, a release is:
+
+```bash
+# on develop, with FINDINGS.md and the version in pyproject.toml both current
+gh pr create --base main --head develop
+# once merged:
+git checkout main && git pull
+git tag v0.1.1 && git push origin v0.1.1
+```
+
+The workflow refuses to publish if the tag does not match the version in
+`pyproject.toml`, so bump that in the same PR.
 
 ## Testing a change
 

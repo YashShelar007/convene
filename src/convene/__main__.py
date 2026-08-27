@@ -1,4 +1,4 @@
-"""``python -m conclave``."""
+"""``python -m convene``."""
 
 import sys
 

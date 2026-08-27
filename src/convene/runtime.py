@@ -1,6 +1,6 @@
 """The engine: build argv, run `claude -p`, decode the envelope.
 
-Everything else in conclave is a layer over :func:`run` / :func:`run_sync`.
+Everything else in convene is a layer over :func:`run` / :func:`run_sync`.
 
 Why the flag pile
 -----------------
@@ -20,10 +20,10 @@ Why not ``--bare``
 calls, but its own documentation says: *"In bare mode, Claude Code never reads
 OAuth credentials or the system keychain"* and *"bare mode doesn't use your
 subscription login."* It requires an API key. Using it would defeat the entire
-point of subscription auth, so conclave never passes it.
+point of subscription auth, so convene never passes it.
 
 Anthropic also states ``--bare`` *"will become the default for -p in a future
-release."* If that lands, subscription auth through this path breaks. `conclave
+release."* If that lands, subscription auth through this path breaks. `convene
 doctor` probes for it empirically rather than sniffing version numbers.
 """
 
@@ -123,6 +123,21 @@ class Result:
     def billable_input_tokens(self) -> int:
         """Input tokens excluding cache reads, which are billed at a discount."""
         return self.input_tokens + self.cache_creation_input_tokens
+
+    # ---- back-compat aliases ----------------------------------------------
+    # The predecessor to this package returned a ClaudeResult with these two
+    # names, and its documented field list is what existing callers reach for.
+    # Keeping them as properties means `from claude_cli import ...` code keeps
+    # working unchanged rather than failing with AttributeError.
+    @property
+    def result_text(self) -> str | None:
+        """Deprecated alias for :attr:`text`."""
+        return self.text
+
+    @property
+    def total_cost_usd(self) -> float:
+        """Deprecated alias for :attr:`cost_usd`."""
+        return self.cost_usd
 
 
 def build_argv(call: Call) -> list[str]:

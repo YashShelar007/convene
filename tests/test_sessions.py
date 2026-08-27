@@ -10,8 +10,8 @@ from __future__ import annotations
 
 import pytest
 
-from conclave.errors import SessionError
-from conclave.sessions import Session, _live_argv, _turn_from_envelope, _user_message
+from convene.errors import SessionError
+from convene.sessions import Session, _live_argv, _turn_from_envelope, _user_message
 
 
 def envelope(cost: float, **extra: object) -> dict:
@@ -64,7 +64,7 @@ def test_failed_turn_raises_even_with_success_subtype():
 
 # ---- durable sessions ------------------------------------------------------
 def test_first_turn_creates_and_later_turns_resume():
-    from conclave.runtime import build_argv
+    from convene.runtime import build_argv
 
     session = Session(system_prompt="s")
     first = build_argv(session._call("hello"))
@@ -80,7 +80,7 @@ def test_first_turn_creates_and_later_turns_resume():
 
 def test_durable_session_persists_to_disk():
     """--no-session-persistence would make the session unresumable."""
-    from conclave.runtime import build_argv
+    from convene.runtime import build_argv
 
     assert "--no-session-persistence" not in build_argv(Session()._call("hi"))
 
@@ -90,7 +90,7 @@ def test_resume_reattaches_without_recreating():
     assert session.id == "dead-beef"
     assert session.started is True
     assert "--resume" in __import__(
-        "conclave.runtime", fromlist=["build_argv"]
+        "convene.runtime", fromlist=["build_argv"]
     ).build_argv(session._call("x"))
 
 
