@@ -1,0 +1,59 @@
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[project]
+name = "conclave"
+version = "0.1.0"
+description = "Run Claude Code headlessly as a local inference layer: named experts, multi-turn sessions, bounded concurrency."
+readme = "README.md"
+license = "MIT"
+requires-python = ">=3.11"
+keywords = ["claude", "claude-code", "llm", "headless", "inference", "agents"]
+classifiers = [
+    "Development Status :: 4 - Beta",
+    "Environment :: Console",
+    "Intended Audience :: Developers",
+    "License :: OSI Approved :: MIT License",
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
+    "Programming Language :: Python :: 3.13",
+    "Topic :: Software Development :: Libraries :: Python Modules",
+]
+# Deliberately none. The core is stdlib only, and `tomllib` is why the floor
+# is 3.11. A tool whose job is to reduce spend should not drag in a tree of
+# transitive dependencies to do it.
+dependencies = []
+
+[project.optional-dependencies]
+dev = ["pytest>=8", "pytest-asyncio>=0.24", "ruff>=0.6"]
+
+[project.scripts]
+conclave = "conclave.cli:main"
+
+[project.urls]
+Homepage = "https://github.com/YashShelar007/conclave"
+Issues = "https://github.com/YashShelar007/conclave/issues"
+Findings = "https://github.com/YashShelar007/conclave/blob/main/FINDINGS.md"
+
+[tool.hatch.build.targets.wheel]
+packages = ["src/conclave"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+asyncio_mode = "auto"
+# Tests that spend money are opt-in: `pytest -m live`.
+markers = ["live: makes real calls to the Claude CLI and costs money"]
+addopts = "-m 'not live'"
+
+[tool.ruff]
+line-length = 90
+target-version = "py311"
+
+[tool.ruff.lint]
+select = ["E", "F", "I", "UP", "B", "SIM", "RUF"]
+ignore = [
+    # The library deliberately catches broad exceptions in fan-out helpers, so
+    # one bad input never sinks a batch. Each site says so.
+    "BLE001",
+]

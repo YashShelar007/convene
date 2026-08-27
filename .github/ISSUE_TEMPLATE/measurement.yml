@@ -1,0 +1,65 @@
+name: Measurement
+description: Report a number — a confirmation, a contradiction, or a new result
+labels: ["measurement"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Measurements are the most valuable thing you can contribute here.
+        A run that **contradicts** a table in FINDINGS.md is worth more than
+        another confirmation of it.
+
+        Every claim needs its sample size and the build it came from. See
+        [CONTRIBUTING.md](../blob/develop/CONTRIBUTING.md#the-claim-standard).
+  - type: input
+    id: claude-version
+    attributes:
+      label: Claude Code version
+      description: "`claude --version`"
+      placeholder: "2.1.237 (Claude Code)"
+    validations: { required: true }
+  - type: input
+    id: platform
+    attributes:
+      label: OS and architecture
+      placeholder: "macOS 15.3 arm64 / Ubuntu 24.04 x86_64 / Windows 11"
+    validations: { required: true }
+  - type: dropdown
+    id: auth
+    attributes:
+      label: Auth mode
+      options: ["login (subscription)", "sandbox_token (subscription)", "api_key"]
+    validations: { required: true }
+  - type: dropdown
+    id: topic
+    attributes:
+      label: Which claim does this touch?
+      options:
+        - "1. -p uses the subscription login / --bare does not"
+        - "2. Prompt cache — the ~9.5x, or where the threshold sits"
+        - "3. Concurrency ceiling"
+        - "4. Multi-turn cost and behaviour"
+        - "5. Auth failure returning success"
+        - "6. Lockdown flags worth ~88x"
+        - "A question FINDINGS.md lists as unmeasured"
+        - "Something not covered yet"
+    validations: { required: true }
+  - type: textarea
+    id: numbers
+    attributes:
+      label: The numbers
+      description: >
+        Token counts and costs, not just costs — a cost claim without tokens
+        cannot be checked. Say how many runs (n) each row represents.
+      render: text
+      placeholder: |
+        n=3 bursts per row, claude-sonnet-5, effort=low
+        n=20  wall=31.4s  errors=7  (5x rate_limit, 2x overloaded)
+    validations: { required: true }
+  - type: textarea
+    id: command
+    attributes:
+      label: How to reproduce it
+      description: The exact command, ideally `conclave bench ...`
+      render: shell
+    validations: { required: true }

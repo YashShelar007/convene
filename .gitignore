@@ -1,0 +1,32 @@
+# Credentials and machine identity. Never commit these.
+data/
+*.oauth-token
+oauth-token
+.credentials.json
+
+# Call logs and ledgers contain your prompts, costs and account activity.
+logs/
+*.log
+*.sqlite3
+*.db
+
+# Local expert registries may hold proprietary prompts.
+experts.local.toml
+conclave.local.toml
+
+# Python
+__pycache__/
+*.py[cod]
+*.egg-info/
+build/
+dist/
+.venv/
+venv/
+.pytest_cache/
+.ruff_cache/
+.mypy_cache/
+
+# macOS
+.DS_Store
+
+scratch/

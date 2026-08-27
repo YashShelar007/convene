@@ -1,0 +1,46 @@
+name: CI
+
+on:
+  push:
+    branches: [main, develop]
+  pull_request:
+    branches: [main, develop]
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        python-version: ["3.11", "3.12", "3.13"]
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: ${{ matrix.python-version }}
+      - run: pip install -e ".[dev]"
+      # The `live` marker is excluded by default in pyproject. CI has no Claude
+      # Code login, and tests that spend money must never run unattended.
+      - run: pytest -q
+      - run: ruff check src tests claude_cli.py
+      - run: ruff format --check src tests claude_cli.py
+
+  scope-guard:
+    # The scope rule in the README is load-bearing, so it is enforced rather
+    # than merely documented: no HTTP server, no OpenAI-compatible endpoint,
+    # and never the --bare flag.
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: No --bare flag anywhere in the package
+        run: |
+          if grep -rn -- '"--bare"' src/; then
+            echo "::error::--bare forces API-key auth and never reads OAuth."
+            exit 1
+          fi
+      - name: No network server in the package
+        run: |
+          if grep -rnE '^\s*(import|from)\s+(http\.server|socketserver|flask|fastapi|uvicorn|aiohttp)\b' src/; then
+            echo "::error::conclave exposes no network endpoint. See README > Scope."
+            exit 1
+          fi
