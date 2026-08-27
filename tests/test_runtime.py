@@ -9,8 +9,8 @@ import json
 
 import pytest
 
-from conclave.errors import CLIError
-from conclave.runtime import Call, build_argv, decode_envelope
+from convene.errors import CLIError
+from convene.runtime import Call, build_argv, decode_envelope
 
 
 def test_lockdown_flags_present_by_default():

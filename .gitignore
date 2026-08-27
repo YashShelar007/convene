@@ -12,7 +12,7 @@ logs/
 
 # Local expert registries may hold proprietary prompts.
 experts.local.toml
-conclave.local.toml
+convene.local.toml
 
 # Python
 __pycache__/

@@ -1,6 +1,6 @@
 """The engine: build argv, run `claude -p`, decode the envelope.
 
-Everything else in conclave is a layer over :func:`run` / :func:`run_sync`.
+Everything else in convene is a layer over :func:`run` / :func:`run_sync`.
 
 Why the flag pile
 -----------------
@@ -20,10 +20,10 @@ Why not ``--bare``
 calls, but its own documentation says: *"In bare mode, Claude Code never reads
 OAuth credentials or the system keychain"* and *"bare mode doesn't use your
 subscription login."* It requires an API key. Using it would defeat the entire
-point of subscription auth, so conclave never passes it.
+point of subscription auth, so convene never passes it.
 
 Anthropic also states ``--bare`` *"will become the default for -p in a future
-release."* If that lands, subscription auth through this path breaks. `conclave
+release."* If that lands, subscription auth through this path breaks. `convene
 doctor` probes for it empirically rather than sniffing version numbers.
 """
 

@@ -1,4 +1,4 @@
-# conclave
+# convene
 
 Run Claude Code headlessly as a local inference layer — named experts,
 multi-turn sessions, and bounded concurrency, on your own machine under your
@@ -11,16 +11,12 @@ policy grounded in measurement rather than folklore, and a check that tells you
 which account is about to be billed. That is what this adds.
 
 ```bash
-pip install git+https://github.com/YashShelar007/conclave@main
-conclave doctor          # what's set up, and whose account pays
+pip install git+https://github.com/YashShelar007/convene@main
+convene doctor          # what's set up, and whose account pays
 ```
 
-> Not on PyPI yet — the name `conclave` there belongs to an unrelated project,
-> so install from git until a distribution name is settled. The import name and
-> the command are `conclave` either way.
-
 ```python
-from conclave import ask, ask_json
+from convene import ask, ask_json
 
 ask("Name the capital of France in one word.")
 # 'Paris'
@@ -66,7 +62,7 @@ software. Between January and April 2026 Anthropic
 common factor in every tool that got cut off was **exposing the subscription as
 an endpoint to other programs.**
 
-So conclave will not grow an HTTP server, an OpenAI-compatible shim, or a
+So convene will not grow an HTTP server, an OpenAI-compatible shim, or a
 credential-forwarding mode, and pull requests adding them will be declined.
 This is a scope decision, not legal advice; read the terms yourself and decide
 what you are comfortable with. Locality is not the test — the carve-out is.
@@ -75,13 +71,13 @@ what you are comfortable with. Locality is not the test — the carve-out is.
 
 ## What this measured that the folklore gets wrong
 
-Every number is reproducible with `conclave bench`; the full tables, with
+Every number is reproducible with `convene bench`; the full tables, with
 sample sizes and build versions, are in [FINDINGS.md](FINDINGS.md).
 
 **1. `claude -p` uses your subscription. `--bare` is the one that doesn't.**
 The widely repeated claim that `-p` "bypasses OAuth and requires an API key" is
 false, and Anthropic's own docs say so: it is `--bare` that
-*"doesn't use your subscription login."* conclave therefore never passes
+*"doesn't use your subscription login."* convene therefore never passes
 `--bare`, despite it being the faster and officially recommended flag for
 scripts.
 
@@ -141,7 +137,7 @@ additionalProperties = false
 ```
 
 ```python
-from conclave import load_experts, ask_expert
+from convene import load_experts, ask_expert
 
 load_experts("experts.toml")
 r = ask_expert("triage", ticket_text)
@@ -155,7 +151,7 @@ prompt: you get better output and a smaller bill from the same change.
 Two ways to get that wrong, both checked:
 
 ```bash
-conclave experts lint
+convene experts lint
 ```
 
 - A prompt too short to cache — every call pays full price.
@@ -165,7 +161,7 @@ conclave experts lint
 ### Running one over a batch
 
 ```bash
-conclave run --expert triage --in tickets.jsonl --out results.jsonl
+convene run --expert triage --in tickets.jsonl --out results.jsonl
 ```
 
 Bounded concurrency, resumable (a rerun skips ids already in `--out`), and it
@@ -179,7 +175,7 @@ pays to *create* the cache entry once instead of once per call.
 ### Asking several at once
 
 ```python
-from conclave import consult
+from convene import consult
 
 await consult(["security", "performance", "style"], diff_text)
 # {'security': Result(...), 'performance': Result(...), 'style': Result(...)}
@@ -195,7 +191,7 @@ useful thing about asking five specialists is usually the four who answered.
 Two kinds, because they fail differently.
 
 ```python
-from conclave import Session, LiveSession
+from convene import Session, LiveSession
 
 # Durable: on disk, resumable from another process, another day, another cwd.
 s = Session(system_prompt=RUBRIC)
@@ -237,25 +233,25 @@ outranks your subscription login, and the call succeeds identically while
 billing API credits. [claude-code#37686](https://github.com/anthropics/claude-code/issues/37686)
 reports $1,800 in two days from exactly this.
 
-Two defences. conclave strips `ANTHROPIC_API_KEY` and `ANTHROPIC_AUTH_TOKEN`
+Two defences. convene strips `ANTHROPIC_API_KEY` and `ANTHROPIC_AUTH_TOKEN`
 from the subprocess environment on every subscription call, and:
 
 ```bash
-conclave doctor
+convene doctor
 ```
 
 ```
   [ok  ] claude binary  2.1.237 (Claude Code)
   [ok  ] api key        no ANTHROPIC_API_KEY / ANTHROPIC_AUTH_TOKEN in the environment
   [ok  ] account        you@example.com (max, via claude.ai)
-  [ok  ] state dir      ~/.conclave
+  [ok  ] state dir      ~/.convene
   [ok  ] live probe     claude-sonnet-5 answered in 3.4s (in=282 out=4 cost=$0.00091)
 ```
 
 In code, at the top of any batch job:
 
 ```python
-from conclave import assert_account
+from convene import assert_account
 assert_account("you@example.com")   # raises on wrong account, or an API key takeover
 ```
 
@@ -269,7 +265,7 @@ call rather than guessing from a version string.
 | Mode | Uses | Setup | Billed to |
 |---|---|---|---|
 | `LOGIN` **(default)** | the `claude /login` you already did | none | your subscription |
-| `SANDBOX_TOKEN` | its own long-lived token, isolated `HOME` | `conclave setup-token` | your subscription |
+| `SANDBOX_TOKEN` | its own long-lived token, isolated `HOME` | `convene setup-token` | your subscription |
 | `API_KEY` | `ANTHROPIC_API_KEY` | set the variable | API credits |
 
 `API_KEY` works but is never selected implicitly — you have to name it.
@@ -278,7 +274,7 @@ call rather than guessing from a version string.
 
 ## What you don't get
 
-conclave is not a drop-in for the Messages API. Check here before promising a
+convene is not a drop-in for the Messages API. Check here before promising a
 caller a feature.
 
 | | | |
@@ -314,12 +310,12 @@ different shape suits you better:
 | Project | Shape | Notes |
 |---|---|---|
 | [Claude Agent SDK](https://code.claude.com/docs/en/agent-sdk/overview) | first-party | Python and TypeScript. The supported path for agentic work. Start here unless you specifically want inference-shaped calls |
-| [RichardAtCT/claude-code-openai-wrapper](https://github.com/RichardAtCT/claude-code-openai-wrapper) | OpenAI-compatible server | What conclave deliberately is not — see *Scope* above |
+| [RichardAtCT/claude-code-openai-wrapper](https://github.com/RichardAtCT/claude-code-openai-wrapper) | OpenAI-compatible server | What convene deliberately is not — see *Scope* above |
 | [dtzp555-max/ocp](https://github.com/dtzp555-max/ocp) | OpenAI-compatible server | LAN auth, per-key quotas, response cache |
 
-The difference conclave is going for is not features, it is **verified claims**
+The difference convene is going for is not features, it is **verified claims**
 — every number in [FINDINGS.md](FINDINGS.md) carries its sample size and the
-build it came from, and `conclave bench` re-runs them on your machine.
+build it came from, and `convene bench` re-runs them on your machine.
 
 ---
 
@@ -328,7 +324,7 @@ build it came from, and `conclave bench` re-runs them on your machine.
 1. **Auth failure returns `subtype: "success"` and exit code 0.** `is_error` is
    the only reliable signal. Handled; don't "simplify" that check.
 2. **Never drop the lockdown flags.** A plain `claude -p` costs ~88x more —
-   verify on your own machine with `conclave doctor --lockdown`.
+   verify on your own machine with `convene doctor --lockdown`.
 3. **Never add `--bare`.** It forces API-key auth and never reads OAuth.
 4. **stdout is pure JSON; warnings go to stderr.** Don't merge the streams.
 5. **`result_text` vs `structured_output`.** With a schema, read
@@ -347,14 +343,14 @@ keeps working, with a `DeprecationWarning`. It will be removed in 1.0.
 |---|---|
 | `run_claude_cli_sync(system_prompt=…, user_prompt=…, …)` | `run_sync(Call(…))` |
 | `run_claude_cli(...)` | `await run(Call(…))` |
-| `ClaudeCLIError` | `ConclaveError` (still exported under the old name) |
+| `ClaudeCLIError` | `ConveneError` (still exported under the old name) |
 | `ClaudeResult` | `Result` |
 | `r.result_text`, `r.total_cost_usd` | `r.text`, `r.cost_usd` (old names still work) |
 | `sandbox_ready()` | `ready()` |
-| `./setup.sh` | `conclave setup-token` |
+| `./setup.sh` | `convene setup-token` |
 
-State moved from `./data` and `./logs` to `~/.conclave`, overridable with
-`CONCLAVE_HOME`.
+State moved from `./data` and `./logs` to `~/.convene`, overridable with
+`CONVENE_HOME`.
 
 ---
 

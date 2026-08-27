@@ -14,13 +14,13 @@ _logger: logging.Logger | None = None
 
 
 def get_logger() -> logging.Logger:
-    """Module-level logger writing to the conclave log file. Idempotent."""
+    """Module-level logger writing to the convene log file. Idempotent."""
     global _logger
     if _logger is not None:
         return _logger
 
     LOG_DIR.mkdir(parents=True, exist_ok=True)
-    logger = logging.getLogger("conclave")
+    logger = logging.getLogger("convene")
     logger.setLevel(logging.INFO)
     # Do not leak into the host application's root logger; a library that
     # prints to someone else's stderr is a bad guest.
@@ -46,7 +46,7 @@ def get_logger() -> logging.Logger:
 
 
 def reset_logger() -> None:
-    """Drop the cached logger. For tests that redirect ``CONCLAVE_HOME``."""
+    """Drop the cached logger. For tests that redirect ``CONVENE_HOME``."""
     global _logger
     if _logger is not None:
         for handler in list(_logger.handlers):

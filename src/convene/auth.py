@@ -228,7 +228,7 @@ def preflight(auth_mode: AuthMode = DEFAULT_AUTH) -> None:
             )
         if auth_mode is AuthMode.SANDBOX_TOKEN:
             raise AuthError(
-                f"Sandbox is not authed. Run `conclave setup-token` to mint one "
+                f"Sandbox is not authed. Run `convene setup-token` to mint one "
                 f"(looked for {SANDBOX_TOKEN_FILE} and {SANDBOX_CREDENTIALS})."
             )
         raise AuthError(

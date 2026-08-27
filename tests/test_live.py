@@ -9,7 +9,7 @@ from __future__ import annotations
 
 import pytest
 
-from conclave import Call, LiveSession, Session, ask, ask_json, ready, run_sync
+from convene import Call, LiveSession, Session, ask, ask_json, ready, run_sync
 
 pytestmark = pytest.mark.live
 

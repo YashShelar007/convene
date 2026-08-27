@@ -60,6 +60,6 @@ body:
     id: command
     attributes:
       label: How to reproduce it
-      description: The exact command, ideally `conclave bench ...`
+      description: The exact command, ideally `convene bench ...`
       render: shell
     validations: { required: true }

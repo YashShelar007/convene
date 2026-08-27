@@ -1,4 +1,4 @@
-"""conclave -- run Claude Code headlessly as a local inference layer.
+"""convene -- run Claude Code headlessly as a local inference layer.
 
 Wraps the official ``claude`` CLI in non-interactive mode, stripped back from a
 coding agent to a plain inference endpoint, and adds the things you need to run
@@ -7,7 +7,7 @@ and diagnostics that tell you which account is about to be billed.
 
 Quick start::
 
-    from conclave import ask, ask_json
+    from convene import ask, ask_json
 
     ask("Name the capital of France in one word.")
     # 'Paris'
@@ -52,7 +52,7 @@ from .errors import (
     AuthError,
     BudgetError,
     CLIError,
-    ConclaveError,
+    ConveneError,
     ExpertNotFound,
     SessionError,
 )
@@ -122,7 +122,7 @@ __all__ = [  # noqa: RUF022
     "DEFAULT_CONCURRENCY",
     "STATE_ROOT",
     # errors
-    "ConclaveError",
+    "ConveneError",
     "CLIError",
     "AuthError",
     "BudgetError",

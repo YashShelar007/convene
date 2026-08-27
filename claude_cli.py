@@ -8,10 +8,10 @@ still works, so existing callers doing::
     sys.path.insert(0, "/path/to/this/repo")
     from claude_cli import ask, ask_json, run_claude_cli_sync
 
-do not need to change anything today. New code should import from ``conclave``.
+do not need to change anything today. New code should import from ``convene``.
 
 The old functions took a flat pile of keyword arguments; the new engine takes a
-:class:`conclave.Call`. This module translates between them.
+:class:`convene.Call`. This module translates between them.
 """
 
 from __future__ import annotations
@@ -26,7 +26,7 @@ _SRC = Path(__file__).resolve().parent / "src"
 if _SRC.is_dir() and str(_SRC) not in sys.path:
     sys.path.insert(0, str(_SRC))
 
-from conclave import (  # noqa: E402
+from convene import (  # noqa: E402
     AuthMode,
     Call,
     Result,
@@ -39,13 +39,13 @@ from conclave import (  # noqa: E402
     run_sync,
     whoami,
 )
-from conclave.config import CHEAP_MODEL, DEFAULT_MODEL  # noqa: E402
-from conclave.errors import ConclaveError  # noqa: E402
+from convene.config import CHEAP_MODEL, DEFAULT_MODEL  # noqa: E402
+from convene.errors import ConveneError  # noqa: E402
 
-#: The old name for the error type. ``ConclaveError`` is the base class of
+#: The old name for the error type. ``ConveneError`` is the base class of
 #: every error this library raises, so ``except ClaudeCLIError`` still catches
 #: everything it used to.
-ClaudeCLIError = ConclaveError
+ClaudeCLIError = ConveneError
 ClaudeResult = Result
 
 __all__ = [
@@ -72,7 +72,7 @@ def _warn_once() -> None:
     if not _WARNED:
         warnings.warn(
             "claude_cli is the old module name for this project; it now wraps "
-            "`conclave`. Import from `conclave` instead -- this shim will be "
+            "`convene`. Import from `convene` instead -- this shim will be "
             "removed in 1.0.",
             DeprecationWarning,
             stacklevel=3,
@@ -106,7 +106,7 @@ def _to_call(
 
 
 def run_claude_cli_sync(*, auth_mode: AuthMode = AuthMode.LOGIN, **kwargs: Any) -> Result:
-    """Old blocking entry point. See :func:`conclave.run_sync`."""
+    """Old blocking entry point. See :func:`convene.run_sync`."""
     _warn_once()
     return run_sync(_to_call(**kwargs), auth_mode=auth_mode)
 
@@ -114,24 +114,24 @@ def run_claude_cli_sync(*, auth_mode: AuthMode = AuthMode.LOGIN, **kwargs: Any) 
 async def run_claude_cli(
     *, auth_mode: AuthMode = AuthMode.LOGIN, **kwargs: Any
 ) -> Result:
-    """Old async entry point. See :func:`conclave.run`."""
+    """Old async entry point. See :func:`convene.run`."""
     _warn_once()
     return await run(_to_call(**kwargs), auth_mode=auth_mode)
 
 
 def sandbox_ready(auth_mode: AuthMode = AuthMode.LOGIN) -> bool:
-    """Old name for :func:`conclave.ready`."""
+    """Old name for :func:`convene.ready`."""
     return ready(auth_mode)
 
 
 def sandbox_authed(
     auth_mode: AuthMode = AuthMode.LOGIN, *, recheck: bool = False
 ) -> bool:
-    """Old name for :func:`conclave.is_authed`."""
+    """Old name for :func:`convene.is_authed`."""
     return is_authed(auth_mode, recheck=recheck)
 
 
 if __name__ == "__main__":
-    from conclave.cli import main
+    from convene.cli import main
 
     sys.exit(main(["doctor"]))

@@ -11,9 +11,9 @@ from pathlib import Path
 from typing import Literal
 
 # ---- Where state lives -----------------------------------------------------
-# Everything conclave writes goes under one root, overridable so several
+# Everything convene writes goes under one root, overridable so several
 # projects on one machine can keep separate ledgers and sandboxes.
-STATE_ROOT = Path(os.environ.get("CONCLAVE_HOME", Path.home() / ".conclave")).expanduser()
+STATE_ROOT = Path(os.environ.get("CONVENE_HOME", Path.home() / ".convene")).expanduser()
 
 SANDBOX_DIR = STATE_ROOT / "sandbox"
 SANDBOX_HOME = SANDBOX_DIR / "fake-home"
@@ -24,7 +24,7 @@ SANDBOX_TOKEN_FILE = SANDBOX_DIR / "oauth-token"
 SANDBOX_CREDENTIALS = SANDBOX_DIR / ".credentials.json"
 
 LOG_DIR = STATE_ROOT / "logs"
-LOG_FILE = LOG_DIR / "conclave.log"
+LOG_FILE = LOG_DIR / "convene.log"
 LEDGER_FILE = STATE_ROOT / "ledger.sqlite3"
 
 # ---- Models ----------------------------------------------------------------

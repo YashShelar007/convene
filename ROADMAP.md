@@ -22,10 +22,10 @@ line are in *Out of scope* at the bottom and will not be built.
 - [x] **Live sessions** via `--input-format stream-json`, plus `SessionPool`
 - [x] Normalised incremental cost across both session kinds
 - [x] `consult()` — one question to a panel of experts, failures isolated
-- [x] `conclave doctor` — setup, billing account, and a live `--bare` probe
-- [x] `conclave bench` — reproduces every number in FINDINGS.md
-- [x] `conclave run` — resumable JSONL batches
-- [x] `conclave chat` — interactive live session
+- [x] `convene doctor` — setup, billing account, and a live `--bare` probe
+- [x] `convene bench` — reproduces every number in FINDINGS.md
+- [x] `convene run` — resumable JSONL batches
+- [x] `convene chat` — interactive live session
 - [x] `claude_cli.py` back-compat shim
 
 ---
@@ -41,7 +41,7 @@ expert cost me this week" or "stop at $5/day".
 - Budget enforcement at three scopes: per call (exists, via
   `--max-budget-usd`), per run, per rolling window. Raise `BudgetError`
   *before* spending, not after.
-- `conclave usage --since 7d --by expert` with cache-hit rate per expert,
+- `convene usage --since 7d --by expert` with cache-hit rate per expert,
   which is the number that tells you whether your prompts are structured well.
 
 ### 2. Adaptive concurrency
@@ -61,11 +61,11 @@ on `(system_prompt, user_prompt, model, effort, schema)`. Re-running a batch
 after fixing a bug in the *consumer* currently re-pays for every call.
 
 - Opt-in, TTL'd, in the SQLite ledger.
-- `--no-cache` to force, `conclave cache purge`.
+- `--no-cache` to force, `convene cache purge`.
 
 ### 4. Streaming
 The CLI supports `--include-partial-messages` for token-level deltas. Worth
-exposing for `conclave chat` and for any interactive consumer.
+exposing for `convene chat` and for any interactive consumer.
 
 - `run_streaming()` yielding text deltas.
 - Wire into `chat` so replies appear as they generate.
@@ -97,8 +97,8 @@ orchestration decided by the model rather than by your code.
   build it** — a negative result is a finding.
 
 ### 8. Ergonomics
-- `conclave experts new <name>` scaffolding a well-shaped, cacheable prompt.
-- `conclave run --dry-run` printing what would be called and the estimated cost.
+- `convene experts new <name>` scaffolding a well-shaped, cacheable prompt.
+- `convene run --dry-run` printing what would be called and the estimated cost.
 - Structured log output (JSONL) alongside the human-readable line.
 
 ---
@@ -113,6 +113,6 @@ See [CONTRIBUTING.md](CONTRIBUTING.md#scope-what-will-be-declined).
 - **Multi-user or multi-tenant anything.** One machine, one login, one person.
 - **Credential extraction, forwarding, or sharing.**
 - **Silent API-key fallback.** `AuthMode.API_KEY` stays explicit forever.
-- **Vendoring or patching `cli.js`.** conclave calls the official binary and
+- **Vendoring or patching `cli.js`.** convene calls the official binary and
   breaks honestly when it changes.
 - **Circumventing rate limits** by rotating accounts, tokens, or machines.

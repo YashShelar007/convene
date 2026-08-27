@@ -1,6 +1,6 @@
 """Exception types.
 
-Every failure path in conclave raises. Nothing returns ``None`` to signal an
+Every failure path in convene raises. Nothing returns ``None`` to signal an
 error, because the single nastiest failure mode this library guards against --
 an auth failure that reports ``subtype: "success"`` and exits 0 -- is already
 hard enough to notice without adding sentinel returns on top.
@@ -9,11 +9,11 @@ hard enough to notice without adding sentinel returns on top.
 from __future__ import annotations
 
 
-class ConclaveError(RuntimeError):
+class ConveneError(RuntimeError):
     """Base class for every error this library raises."""
 
 
-class CLIError(ConclaveError):
+class CLIError(ConveneError):
     """The ``claude`` subprocess failed.
 
     Covers: binary missing from PATH, non-zero exit, timeout, unparseable
@@ -22,22 +22,22 @@ class CLIError(ConclaveError):
     """
 
 
-class AuthError(ConclaveError):
+class AuthError(ConveneError):
     """Not logged in, or logged into an account you did not intend to bill.
 
-    Raised by :func:`conclave.auth.assert_account` and by preflight. Kept
+    Raised by :func:`convene.auth.assert_account` and by preflight. Kept
     distinct from :class:`CLIError` so a caller can retry transport failures
     without retrying a billing mistake.
     """
 
 
-class BudgetError(ConclaveError):
+class BudgetError(ConveneError):
     """A configured spend ceiling was reached before the call was made."""
 
 
-class ExpertNotFound(ConclaveError):
+class ExpertNotFound(ConveneError):
     """No expert by that name is registered."""
 
 
-class SessionError(ConclaveError):
+class SessionError(ConveneError):
     """A session could not be started, resumed, or spoken to."""

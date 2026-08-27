@@ -4,7 +4,7 @@ An expert bundles everything that makes a call a *kind* of call -- system
 prompt, model, effort, output schema, budget -- behind a name, so calling code
 says what it wants rather than how to get it::
 
-    from conclave import ask_expert
+    from convene import ask_expert
     ask_expert("scorer", listing_text)
 
 The cost argument
@@ -54,7 +54,7 @@ from .config import (
     SUBPROCESS_TIMEOUT_S,
     EffortLevel,
 )
-from .errors import ConclaveError, ExpertNotFound
+from .errors import ConveneError, ExpertNotFound
 from .runtime import Call, Result, run, run_sync
 
 
@@ -87,7 +87,7 @@ class Expert:
     timeout_s: float = SUBPROCESS_TIMEOUT_S
 
     def call_for(self, user_prompt: str, **overrides: Any) -> Call:
-        """Build the :class:`~conclave.runtime.Call` this expert represents."""
+        """Build the :class:`~convene.runtime.Call` this expert represents."""
         call = Call(
             user_prompt=user_prompt,
             system_prompt=self.system_prompt,
@@ -125,12 +125,12 @@ class Expert:
         known = {f.name for f in cls.__dataclass_fields__.values()} - {"name"}
         unknown = set(data) - known
         if unknown:
-            raise ConclaveError(
+            raise ConveneError(
                 f"expert {name!r} has unknown key(s): {', '.join(sorted(unknown))}. "
                 f"Valid keys: {', '.join(sorted(known))}"
             )
         if "system_prompt" not in data:
-            raise ConclaveError(f"expert {name!r} is missing system_prompt")
+            raise ConveneError(f"expert {name!r} is missing system_prompt")
         return cls(name=name, **data)
 
 
@@ -188,7 +188,7 @@ class Registry:
         registry = cls(source=source)
         for name, table in data.items():
             if not isinstance(table, dict):
-                raise ConclaveError(
+                raise ConveneError(
                     f"top-level key {name!r} is a bare value; every entry in an "
                     "expert registry must be a [table]"
                 )
@@ -200,7 +200,7 @@ class Registry:
         """Load a registry from a TOML file."""
         p = Path(path).expanduser()
         if not p.exists():
-            raise ConclaveError(f"expert registry not found: {p}")
+            raise ConveneError(f"expert registry not found: {p}")
         return cls.from_toml_text(p.read_text(encoding="utf-8"), source=p)
 
     # ---- quality checks ---------------------------------------------------

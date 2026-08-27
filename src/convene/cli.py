@@ -1,4 +1,4 @@
-"""The ``conclave`` command line.
+"""The ``convene`` command line.
 
 Subcommands:
 
@@ -35,7 +35,7 @@ from .config import (
     SANDBOX_TOKEN_FILE,
 )
 from .doctor import run_checks, worst
-from .errors import ConclaveError
+from .errors import ConveneError
 from .experts import Registry, estimate_tokens, map_expert
 from .runtime import Call, run, run_sync
 from .sessions import LiveSession
@@ -49,15 +49,15 @@ def _load_registry(path: str | None) -> Registry:
     """Find an expert registry, by flag, environment, or convention."""
     candidates = [
         path,
-        os.environ.get("CONCLAVE_EXPERTS"),
+        os.environ.get("CONVENE_EXPERTS"),
         "experts.toml",
-        "conclave.toml",
+        "convene.toml",
     ]
     for candidate in candidates:
         if candidate and Path(candidate).expanduser().exists():
             return Registry.load(candidate)
-    raise ConclaveError(
-        "no expert registry found. Pass --experts PATH, set CONCLAVE_EXPERTS, "
+    raise ConveneError(
+        "no expert registry found. Pass --experts PATH, set CONVENE_EXPERTS, "
         "or create experts.toml in the working directory."
     )
 
@@ -93,7 +93,7 @@ def cmd_json(args: argparse.Namespace) -> int:
     try:
         schema = json.loads(schema_text)
     except json.JSONDecodeError as e:
-        raise ConclaveError(
+        raise ConveneError(
             f"--schema is neither a readable file nor valid JSON: {e}"
         ) from e
 
@@ -163,7 +163,7 @@ def _read_items(path: str, field: str) -> list[dict[str, Any]]:
                 items.append({"id": str(index), "prompt": record})
             elif isinstance(record, dict):
                 if field not in record:
-                    raise ConclaveError(
+                    raise ConveneError(
                         f"line {index + 1} has no {field!r} field. "
                         f"Use --field to name the prompt field."
                     )
@@ -175,7 +175,7 @@ def _read_items(path: str, field: str) -> list[dict[str, Any]]:
                     }
                 )
             else:
-                raise ConclaveError(f"line {index + 1} is neither an object nor a string")
+                raise ConveneError(f"line {index + 1} is neither an object nor a string")
     finally:
         if handle is not sys.stdin:
             handle.close()
@@ -216,7 +216,7 @@ def cmd_run(args: argparse.Namespace) -> int:
         _eprint(
             f"warn: {expert.name}'s system prompt is ~"
             f"{estimate_tokens(expert.system_prompt)} tokens, too short for the "
-            f"prompt cache. Every call will pay full price. `conclave experts lint`"
+            f"prompt cache. Every call will pay full price. `convene experts lint`"
         )
 
     start = time.monotonic()
@@ -287,7 +287,7 @@ def cmd_chat(args: argparse.Namespace) -> int:
             args.effort = expert.effort
 
     print(
-        f"conclave chat -- {args.model}"
+        f"convene chat -- {args.model}"
         f"{'/' + args.effort if args.effort else ''}. "
         f"Ctrl-D or /quit to exit.\n"
     )
@@ -309,7 +309,7 @@ def cmd_chat(args: argparse.Namespace) -> int:
                 break
             try:
                 turn = session.ask(line)
-            except ConclaveError as e:
+            except ConveneError as e:
                 _eprint(f"error: {e}")
                 break
             print(f"\n{turn.text}\n")
@@ -324,7 +324,7 @@ def cmd_chat(args: argparse.Namespace) -> int:
 
 # ---- doctor ----------------------------------------------------------------
 def cmd_doctor(args: argparse.Namespace) -> int:
-    print(f"conclave {__version__}\n")
+    print(f"convene {__version__}\n")
     checks = run_checks(
         auth_mode=AuthMode(args.auth),
         expected_email=args.expect_email,
@@ -358,7 +358,7 @@ def cmd_bench(args: argparse.Namespace) -> int:
     from .auth import cli_version
 
     model = args.model
-    print(f"conclave bench -- Claude Code {cli_version()}, model {model}\n")
+    print(f"convene bench -- Claude Code {cli_version()}, model {model}\n")
     total = 0.0
 
     if "cache" in args.suite:
@@ -448,17 +448,17 @@ def cmd_setup_token(args: argparse.Namespace) -> int:
     SANDBOX_TOKEN_FILE.write_text(token, encoding="utf-8")
     SANDBOX_TOKEN_FILE.chmod(stat.S_IRUSR | stat.S_IWUSR)
     print(f"Wrote {SANDBOX_TOKEN_FILE} (mode 600).")
-    print("\nVerify with:  conclave doctor --auth sandbox_token")
+    print("\nVerify with:  convene doctor --auth sandbox_token")
     return 0
 
 
 # ---- parser ----------------------------------------------------------------
 def build_parser() -> argparse.ArgumentParser:
     parser = argparse.ArgumentParser(
-        prog="conclave",
+        prog="convene",
         description="Run Claude Code headlessly as a local inference layer.",
     )
-    parser.add_argument("--version", action="version", version=f"conclave {__version__}")
+    parser.add_argument("--version", action="version", version=f"convene {__version__}")
     sub = parser.add_subparsers(dest="command", required=True)
 
     def add_common(p: argparse.ArgumentParser) -> None:
@@ -569,7 +569,7 @@ def main(argv: Iterable[str] | None = None) -> int:
     args = parser.parse_args(list(argv) if argv is not None else None)
     try:
         return int(args.func(args))
-    except ConclaveError as e:
+    except ConveneError as e:
         _eprint(f"error: {e}")
         return 1
     except KeyboardInterrupt:

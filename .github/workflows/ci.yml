@@ -41,6 +41,6 @@ jobs:
       - name: No network server in the package
         run: |
           if grep -rnE '^\s*(import|from)\s+(http\.server|socketserver|flask|fastapi|uvicorn|aiohttp)\b' src/; then
-            echo "::error::conclave exposes no network endpoint. See README > Scope."
+            echo "::error::convene exposes no network endpoint. See README > Scope."
             exit 1
           fi

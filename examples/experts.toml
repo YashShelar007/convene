@@ -8,8 +8,8 @@
 # So put the whole rubric here -- definitions, worked examples, edge cases,
 # output conventions. Put only the per-item data in the user prompt.
 #
-#   conclave experts list       what is registered, and whether it will cache
-#   conclave experts lint       flags prompts too short or interpolated per call
+#   convene experts list       what is registered, and whether it will cache
+#   convene experts lint       flags prompts too short or interpolated per call
 
 [triage]
 description = "Sorts inbound support mail into a queue, with a confidence score"

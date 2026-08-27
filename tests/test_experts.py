@@ -4,9 +4,9 @@ from __future__ import annotations
 
 import pytest
 
-from conclave.config import CACHE_MIN_TOKENS_HINT, HARNESS_OVERHEAD_TOKENS
-from conclave.errors import ConclaveError, ExpertNotFound
-from conclave.experts import Expert, Registry, estimate_tokens
+from convene.config import CACHE_MIN_TOKENS_HINT, HARNESS_OVERHEAD_TOKENS
+from convene.errors import ConveneError, ExpertNotFound
+from convene.experts import Expert, Registry, estimate_tokens
 
 LONG = "You classify documents against a detailed rubric. " * 120
 SHORT = "Be terse."
@@ -32,17 +32,17 @@ def test_parses_a_registry():
 def test_unknown_key_is_an_error_not_a_warning():
     """A typo'd `modle` that silently left you on the default model would be
     an expensive thing to learn from a bill."""
-    with pytest.raises(ConclaveError, match="unknown key"):
+    with pytest.raises(ConveneError, match="unknown key"):
         Registry.from_toml_text('[a]\nsystem_prompt = "x"\nmodle = "claude-sonnet-5"\n')
 
 
 def test_missing_system_prompt_is_an_error():
-    with pytest.raises(ConclaveError, match="missing system_prompt"):
+    with pytest.raises(ConveneError, match="missing system_prompt"):
         Registry.from_toml_text('[a]\nmodel = "claude-sonnet-5"\n')
 
 
 def test_bare_top_level_value_is_rejected():
-    with pytest.raises(ConclaveError, match=r"must be a \[table\]"):
+    with pytest.raises(ConveneError, match=r"must be a \[table\]"):
         Registry.from_toml_text('name = "not a table"\n')
 
 
