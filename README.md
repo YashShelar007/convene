@@ -345,6 +345,7 @@ keeps working, with a `DeprecationWarning`. It will be removed in 1.0.
 | `run_claude_cli(...)` | `await run(Call(…))` |
 | `ClaudeCLIError` | `ConclaveError` (still exported under the old name) |
 | `ClaudeResult` | `Result` |
+| `r.result_text`, `r.total_cost_usd` | `r.text`, `r.cost_usd` (old names still work) |
 | `sandbox_ready()` | `ready()` |
 | `./setup.sh` | `conclave setup-token` |
 

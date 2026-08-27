@@ -124,6 +124,21 @@ class Result:
         """Input tokens excluding cache reads, which are billed at a discount."""
         return self.input_tokens + self.cache_creation_input_tokens
 
+    # ---- back-compat aliases ----------------------------------------------
+    # The predecessor to this package returned a ClaudeResult with these two
+    # names, and its documented field list is what existing callers reach for.
+    # Keeping them as properties means `from claude_cli import ...` code keeps
+    # working unchanged rather than failing with AttributeError.
+    @property
+    def result_text(self) -> str | None:
+        """Deprecated alias for :attr:`text`."""
+        return self.text
+
+    @property
+    def total_cost_usd(self) -> float:
+        """Deprecated alias for :attr:`cost_usd`."""
+        return self.cost_usd
+
 
 def build_argv(call: Call) -> list[str]:
     """Translate a :class:`Call` into a `claude` command line."""
