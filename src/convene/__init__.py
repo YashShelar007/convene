@@ -67,6 +67,15 @@ from .experts import (
     map_expert,
     register,
 )
+from .ledger import (
+    Budget,
+    Ledger,
+    Totals,
+    active_budgets,
+    add_budget,
+    clear_budgets,
+    get_ledger,
+)
 from .runtime import Call, Result, run, run_sync
 from .sessions import (
     AsyncLiveSession,
@@ -76,7 +85,7 @@ from .sessions import (
     Turn,
 )
 
-__version__ = "0.1.0"
+__version__ = "0.2.0"
 
 # Grouped by concept rather than sorted: this list doubles as the shape of the
 # public API, and alphabetising it would scatter each group.
@@ -99,6 +108,14 @@ __all__ = [  # noqa: RUF022
     "ask_expert_async",
     "consult",
     "map_expert",
+    # spend
+    "Budget",
+    "Ledger",
+    "Totals",
+    "add_budget",
+    "clear_budgets",
+    "active_budgets",
+    "get_ledger",
     # sessions
     "Session",
     "LiveSession",

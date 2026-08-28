@@ -96,6 +96,11 @@ Each corresponds to a way this has already gone wrong, or would.
   in a tree of transitive dependencies. `tomllib` is why the floor is 3.11.
 - **Normalise costs, don't pass them through.** Live sessions report cumulative
   cost, durable ones report per-call. `Turn.cost_usd` is always incremental.
+- **Never store prompts or responses in the ledger.** It is an accounting
+  record, and it should stay safe to share with someone who should not see the
+  data that went through it. Pinned by `tests/test_ledger.py`.
+- **A ledger failure must never lose a result the caller already paid for.**
+  Recording is best-effort and logs on failure; it does not raise.
 
 ## Releasing
 

@@ -54,7 +54,7 @@ from .config import (
     SUBPROCESS_TIMEOUT_S,
     EffortLevel,
 )
-from .errors import ConveneError, ExpertNotFound
+from .errors import BudgetError, ConveneError, ExpertNotFound
 from .runtime import Call, Result, run, run_sync
 
 
@@ -299,6 +299,9 @@ async def consult(
     Returns a name-keyed dict. A failing expert yields its exception rather
     than sinking the whole panel, because the useful thing about asking five
     specialists is usually the four who answered.
+
+    :class:`~convene.errors.BudgetError` is the exception: it propagates, since
+    a spend ceiling applies to every remaining call too.
     """
     reg = registry or _default
     experts = [reg.get(n) for n in names]
@@ -310,6 +313,10 @@ async def consult(
                 return await run(
                     expert.call_for(user_prompt, **overrides), auth_mode=auth_mode
                 )
+            except BudgetError:
+                # Global, not per-expert: every remaining call hits it too, so
+                # halt rather than reporting N copies of one condition.
+                raise
             except Exception as e:
                 return e
 
@@ -349,6 +356,10 @@ async def map_expert(
                 return await run(
                     expert.call_for(prompt, **overrides), auth_mode=auth_mode
                 )
+            except BudgetError:
+                # Global, not per-item: halt the batch instead of marking every
+                # remaining row failed with the same message.
+                raise
             except Exception as e:
                 return e
 
