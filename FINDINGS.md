@@ -227,13 +227,22 @@ convene doctor --lockdown
 
 ## What has not been measured
 
-Contributions welcome — see [CONTRIBUTING.md](CONTRIBUTING.md).
+Each of these is an open issue. A run that **contradicts** a table above is
+worth more than another confirmation of it, and "observed once" is a perfectly
+good claim as long as it says so. See
+[CONTRIBUTING.md](CONTRIBUTING.md#the-claim-standard) for the standard.
 
-1. **The real concurrency ceiling.** n=20 is the largest burst tried.
-2. **Haiku's cache threshold.** Documented as 2048 tokens; unverified here.
-3. **Cache TTL on this path.** Warm reads were ~30s apart. How long an entry
-   survives is unknown.
-4. **Linux and Windows.** Every number above is macOS arm64.
-5. **Rate-limit behaviour at the weekly cap.** No measurement of what a
-   subscription limit looks like in the envelope.
-6. **Whether `--bare` has become the `-p` default** in any build after 2.1.237.
+| # | Question | Effort |
+|---|---|---|
+| [#6](https://github.com/YashShelar007/convene/issues/6) | **The real concurrency ceiling.** n=20 is the largest burst tried, not a limit anyone found. | easy to run |
+| [#7](https://github.com/YashShelar007/convene/issues/7) | **Haiku's cache threshold.** Documented as 2048 tokens; unverified here, and `experts lint` assumes ~1024 for every model. | good first issue |
+| [#8](https://github.com/YashShelar007/convene/issues/8) | **Cache TTL on this path.** Warm reads were ~30s apart. How long an entry survives is unknown. | slow, mostly waiting |
+| [#9](https://github.com/YashShelar007/convene/issues/9) | **Linux and Windows.** Every number above is macOS arm64. | good first issue |
+| [#10](https://github.com/YashShelar007/convene/issues/10) | **Rate-limit behaviour at the subscription cap.** Unknown whether it is distinguishable from an auth failure, which matters because both may exit 0. | opportunistic |
+| [#11](https://github.com/YashShelar007/convene/issues/11) | **Whether `--bare` has become the `-p` default** in any build after 2.1.237. This one would break subscription auth entirely. | good first issue |
+
+Reproduce the existing numbers first:
+
+```bash
+convene bench
+```
