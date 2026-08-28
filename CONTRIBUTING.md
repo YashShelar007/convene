@@ -43,17 +43,21 @@ cannot be checked.
 
 ## What's most wanted
 
-The open questions are listed at the bottom of [FINDINGS.md](FINDINGS.md). The
-highest-value ones:
+The open questions are tracked as issues and listed with their effort level at
+the bottom of [FINDINGS.md](FINDINGS.md#what-has-not-been-measured). The three
+marked *good first issue* need no knowledge of the codebase at all — you run a
+command and paste the output.
 
-1. **The real concurrency ceiling.** n=20 is simply the largest burst anyone
-   has tried. Where does it actually start erroring, and what does the envelope
-   look like when it does?
-2. **A Linux or Windows column.** Every number in FINDINGS.md is macOS arm64.
-3. **Cache TTL.** Warm reads were ~30s apart. How long does an entry live?
-4. **A build newer than 2.1.237** — especially one where `--bare` has become
-   the default for `-p`, which would break subscription auth entirely.
-5. **Counter-examples.** A run that contradicts a table in FINDINGS.md is worth
+The highest-value ones:
+
+1. **[#9](https://github.com/YashShelar007/convene/issues/9) — a Linux or
+   Windows column.** Every number in FINDINGS.md is macOS arm64.
+2. **[#6](https://github.com/YashShelar007/convene/issues/6) — the real
+   concurrency ceiling.** n=20 is the largest burst anyone has tried.
+3. **[#11](https://github.com/YashShelar007/convene/issues/11) — whether
+   `--bare` has become the `-p` default** in a newer build. That would break
+   subscription auth entirely, and would not announce itself.
+4. **Counter-examples.** A run that contradicts a table in FINDINGS.md is worth
    more than another confirmation of it.
 
 Reproduce the existing numbers first:
