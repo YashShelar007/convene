@@ -45,6 +45,7 @@ from .config import (
     EffortLevel,
 )
 from .errors import CLIError
+from .ledger import check_budgets, get_ledger, recording_enabled
 from .logging_ import get_logger
 
 # Flags that strip the coding agent back to an inference endpoint. Each one was
@@ -257,9 +258,41 @@ def decode_envelope(stdout: str, call: Call, elapsed: float) -> Result:
     return result
 
 
+def _record(call: Call, result: Result) -> None:
+    """Append this call to the spend ledger. Never fatal.
+
+    A ledger write failing must not lose a result the caller already paid for,
+    so this swallows storage errors after logging them.
+    """
+    if not recording_enabled():
+        return
+    try:
+        get_ledger().record(
+            tag=call.log_tag,
+            context=call.log_context,
+            model=result.model,
+            effort=call.effort,
+            input_tokens=result.input_tokens,
+            output_tokens=result.output_tokens,
+            cache_read_tokens=result.cache_read_input_tokens,
+            cache_creation_tokens=result.cache_creation_input_tokens,
+            cost_usd=result.cost_usd,
+            elapsed_s=result.elapsed_s,
+            session_id=result.session_id,
+            kind="call",
+        )
+    except Exception:
+        get_logger().exception("failed to write to the spend ledger")
+
+
 def run_sync(call: Call, *, auth_mode: AuthMode = DEFAULT_AUTH) -> Result:
-    """Run one inference, blocking. Raises :class:`CLIError` on failure."""
+    """Run one inference, blocking. Raises :class:`CLIError` on failure.
+
+    Raises :class:`~convene.errors.BudgetError` *before* spending anything if a
+    registered budget has already been reached.
+    """
     preflight(auth_mode)
+    check_budgets(call.log_tag)
     argv = build_argv(call)
     logger = get_logger()
     start = time.monotonic()
@@ -292,12 +325,19 @@ def run_sync(call: Call, *, auth_mode: AuthMode = DEFAULT_AUTH) -> Result:
         raise CLIError(
             f"claude CLI exited {proc.returncode}: {(proc.stderr or '').strip()[:300]}"
         )
-    return decode_envelope(proc.stdout, call, elapsed)
+    result = decode_envelope(proc.stdout, call, elapsed)
+    _record(call, result)
+    return result
 
 
 async def run(call: Call, *, auth_mode: AuthMode = DEFAULT_AUTH) -> Result:
-    """Run one inference, async. Raises :class:`CLIError` on failure."""
+    """Run one inference, async. Raises :class:`CLIError` on failure.
+
+    Raises :class:`~convene.errors.BudgetError` *before* spending anything if a
+    registered budget has already been reached.
+    """
     preflight(auth_mode)
+    check_budgets(call.log_tag)
     argv = build_argv(call)
     logger = get_logger()
     start = time.monotonic()
@@ -338,7 +378,9 @@ async def run(call: Call, *, auth_mode: AuthMode = DEFAULT_AUTH) -> Result:
     if proc.returncode != 0:
         _log_exit(logger, call, proc.returncode or -1, stderr, elapsed)
         raise CLIError(f"claude CLI exited {proc.returncode}: {stderr.strip()[:300]}")
-    return decode_envelope(stdout, call, elapsed)
+    result = decode_envelope(stdout, call, elapsed)
+    _record(call, result)
+    return result
 
 
 def _log_exit(logger, call: Call, code: int, stderr: str, elapsed: float) -> None:

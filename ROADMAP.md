@@ -28,21 +28,34 @@ line are in *Out of scope* at the bottom and will not be built.
 - [x] `convene chat` — interactive live session
 - [x] `claude_cli.py` back-compat shim
 
+## Shipped in 0.2
+
+- [x] **SQLite spend ledger** — one row per call and per live-session turn.
+      Prompts are never stored.
+- [x] **`convene usage`** — spend by expert or by day, with cache-hit rate and
+      a note naming any expert whose prompt is not earning its cache.
+- [x] **Budgets** — rolling ceilings, optionally scoped to one expert, checked
+      *before* the subprocess is spawned. Settable from `CONVENE_BUDGET_USD`
+      with no code, or `--budget-usd` on a run.
+- [x] A budget stop halts a batch with one message instead of marking every
+      remaining row failed.
+
 ---
 
 ## Next
 
-### 1. Cost ledger and budgets — *highest value*
-The flat log file answers "what happened"; it cannot answer "how much has this
-expert cost me this week" or "stop at $5/day".
+### 1. Reservation accounting for budgets
+The ceiling shipped in 0.2 is checked against spend already *recorded*, so
+concurrent calls can cross it together — with 12 in flight, by up to 12 calls'
+worth. That is documented rather than hidden, and it is fine for stopping a
+runaway loop, but it is not a hard cap.
 
-- SQLite ledger: one row per call — timestamp, expert, model, tokens, cache
-  read/create, cost, tag, session.
-- Budget enforcement at three scopes: per call (exists, via
-  `--max-budget-usd`), per run, per rolling window. Raise `BudgetError`
-  *before* spending, not after.
-- `convene usage --since 7d --by expert` with cache-hit rate per expert,
-  which is the number that tells you whether your prompts are structured well.
+- Reserve an estimated cost before a call and settle it after, so in-flight
+  spend counts toward the ceiling.
+- Estimate from the expert's recent average in the ledger, which is already
+  recorded.
+- Keep the current behaviour as the default; reservation is stricter and
+  slower, so it should be opt-in.
 
 ### 2. Adaptive concurrency
 The current default of 12 is a measured midpoint, but it is still a constant.

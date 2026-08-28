@@ -6,6 +6,7 @@ Subcommands:
     json      one-shot completion validated against a JSON Schema
     experts   list and lint an expert registry
     run       run one expert over a JSONL file, resumably
+    usage     what you have spent, by expert or by day
     chat      an interactive live session in your terminal
     doctor    check setup, and which account is about to be billed
     bench     reproduce the measurements in FINDINGS.md
@@ -37,6 +38,7 @@ from .config import (
 from .doctor import run_checks, worst
 from .errors import ConveneError
 from .experts import Registry, estimate_tokens, map_expert
+from .ledger import Budget, Totals, add_budget, check_budgets, get_ledger
 from .runtime import Call, run, run_sync
 from .sessions import LiveSession
 
@@ -203,6 +205,13 @@ def cmd_run(args: argparse.Namespace) -> int:
     registry = _load_registry(args.experts)
     expert = registry.get(args.expert)
     items = _read_items(args.input, args.field)
+
+    if args.budget_usd is not None:
+        budget = add_budget(Budget(limit_usd=args.budget_usd, window=args.budget_window))
+        _eprint(f"budget: {budget.describe()}")
+    # Check once up front, so an already-exhausted ceiling reports itself before
+    # any work starts rather than after the first item has tried.
+    check_budgets(expert.name)
 
     done = _already_done(args.output) if args.output and args.resume else set()
     pending = [i for i in items if i["id"] not in done]
@@ -424,6 +433,96 @@ def cmd_bench(args: argparse.Namespace) -> int:
     return 0
 
 
+# ---- usage -----------------------------------------------------------------
+# One column spec, used for both the header and the rows, so they cannot drift.
+_COLS = (("CALLS", 6), ("COST", 11), ("PER CALL", 10), ("CACHED", 8), ("AVG TIME", 9))
+
+
+def _usage_header(label: str, width: int) -> str:
+    cells = "".join(f"  {name:>{w}}" for name, w in _COLS)
+    return f"  {label.upper():<{width}}{cells}"
+
+
+def _usage_row(name: str, t: Totals, width: int) -> str:
+    values = (
+        f"{t.calls}",
+        f"${t.cost_usd:.4f}",
+        f"${t.avg_cost_usd:.5f}",
+        f"{t.cache_hit_rate * 100:.0f}%",
+        f"{t.avg_elapsed_s:.1f}s",
+    )
+    cells = "".join(f"  {v:>{w}}" for v, (_, w) in zip(values, _COLS, strict=True))
+    return f"  {name:<{width}}{cells}"
+
+
+def cmd_usage(args: argparse.Namespace) -> int:
+    ledger = get_ledger()
+
+    if args.purge is not None:
+        n = ledger.purge(older_than=None if args.purge == "all" else args.purge)
+        print(f"deleted {n} row(s) from {ledger.path}")
+        return 0
+
+    # Check for the file before reading, because reading creates it.
+    had_ledger = ledger.path.exists()
+    overall = ledger.totals(window=args.since)
+    if overall.calls == 0:
+        print(f"No calls recorded in the last {args.since}.")
+        print(f"  ledger: {ledger.path}")
+        if not had_ledger:
+            print("  (nothing recorded yet — make a call, or check CONVENE_LEDGER)")
+        return 0
+
+    print(f"convene usage — last {args.since}\n")
+
+    groups: dict[str, Totals]
+    if args.by == "tag":
+        groups, label = ledger.by_tag(window=args.since), "tag"
+    else:
+        groups, label = ledger.by_day(window=args.since), "day"
+
+    width = max([len(k) for k in groups] + [len(label), 7])
+    print(_usage_header(label, width))
+    for name, totals in groups.items():
+        print(_usage_row(name, totals, width))
+    print("  " + "-" * (width + sum(w + 2 for _, w in _COLS)))
+    print(_usage_row("TOTAL", overall, width))
+
+    # The cache-hit rate is the number worth acting on, so say what it means
+    # rather than leaving it as a column.
+    if args.by == "tag":
+        cold = [
+            (n, t)
+            for n, t in groups.items()
+            if t.calls >= 5 and t.cache_hit_rate < 0.5 and n != "session"
+        ]
+        if cold:
+            print()
+            for name, t in cold:
+                print(
+                    f"  note: {name!r} read a warm cache on only "
+                    f"{t.cache_hit_rate * 100:.0f}% of {t.calls} calls. Its system "
+                    f"prompt is likely too short, unstable, or interpolated per "
+                    f"call — `convene experts lint` will say which."
+                )
+
+    if args.verbose:
+        print("\n  recent calls:")
+        for row in ledger.recent(args.verbose):
+            print(
+                f"    {row['ts']}  {row['tag']:<12} {row['model']:<18} "
+                f"${row['cost_usd']:.5f}  {row['elapsed_s']:.1f}s  {row['context']}"
+            )
+
+    print(f"\n  ledger: {ledger.path}")
+    print(
+        "  Costs are client-side list-price estimates, not charges. On "
+        "subscription\n  auth they are an accounting figure for comparing "
+        "prompts, not a bill."
+    )
+    return 0
+
+
 # ---- setup-token -----------------------------------------------------------
 def cmd_setup_token(args: argparse.Namespace) -> int:
     """Mint a long-lived subscription token for unattended runs."""
@@ -511,6 +610,18 @@ def build_parser() -> argparse.ArgumentParser:
     p_run.add_argument("--experts", default=None)
     p_run.add_argument("--concurrency", type=int, default=DEFAULT_CONCURRENCY)
     p_run.add_argument(
+        "--budget-usd",
+        type=float,
+        default=None,
+        metavar="USD",
+        help="stop the run once this much has been spent in --budget-window",
+    )
+    p_run.add_argument(
+        "--budget-window",
+        default="1d",
+        help="window the budget applies over (default: 1d)",
+    )
+    p_run.add_argument(
         "--no-resume",
         dest="resume",
         action="store_false",
@@ -557,6 +668,34 @@ def build_parser() -> argparse.ArgumentParser:
         "--auth", choices=[m.value for m in AuthMode], default=DEFAULT_AUTH.value
     )
     p_bench.set_defaults(func=cmd_bench)
+
+    p_use = sub.add_parser("usage", help="what you have spent, by expert or by day")
+    p_use.add_argument(
+        "--since",
+        default="7d",
+        help="rolling window: 30m, 24h, 7d, 2w, or all (default: 7d)",
+    )
+    p_use.add_argument(
+        "--by", choices=["tag", "day"], default="tag", help="group by (default: tag)"
+    )
+    p_use.add_argument(
+        "--verbose",
+        nargs="?",
+        type=int,
+        const=20,
+        default=0,
+        metavar="N",
+        help="also list the N most recent calls (default 20)",
+    )
+    p_use.add_argument(
+        "--purge",
+        nargs="?",
+        const="all",
+        default=None,
+        metavar="WINDOW",
+        help="delete rows older than WINDOW, or everything if given bare",
+    )
+    p_use.set_defaults(func=cmd_usage)
 
     p_tok = sub.add_parser("setup-token", help="mint a long-lived subscription token")
     p_tok.set_defaults(func=cmd_setup_token)
