@@ -231,6 +231,65 @@ you want shared accumulated context, and a bug when you don't. Pass
 
 ---
 
+## Spend
+
+Every call is recorded to a SQLite ledger at `~/.convene/ledger.sqlite3`.
+**Prompts and responses are never stored** — it is for accounting, not
+transcripts, so it stays safe to hand to someone who should not see your data.
+
+```bash
+convene usage --since 7d
+```
+
+```
+  TAG           CALLS         COST    PER CALL    CACHED   AVG TIME
+  badprompt         8      $0.1600    $0.02000        0%       0.0s
+  goodprompt        6      $0.0240    $0.00400      100%       0.0s
+  ----------------------------------------------------------------
+  TOTAL            14      $0.1840    $0.01314       43%       0.0s
+
+  note: 'badprompt' read a warm cache on only 0% of 8 calls. Its system prompt
+  is likely too short, unstable, or interpolated per call — `convene experts
+  lint` will say which.
+```
+
+The **CACHED** column is the one to act on. Those two experts differ 5x in
+cost per call for the same reason finding 2 describes, and the note tells you
+which lever to pull. `--by day` groups by date instead; `--verbose` lists
+recent calls.
+
+### Ceilings
+
+A budget stops a runaway loop before it spends, rather than reporting it
+afterwards. No code needed:
+
+```bash
+export CONVENE_BUDGET_USD=5          # with CONVENE_BUDGET_WINDOW=1d by default
+convene run --expert triage --in tickets.jsonl --budget-usd 2
+```
+
+or in Python, optionally scoped to one expert:
+
+```python
+from convene import Budget, add_budget
+
+add_budget(Budget(5.00, "1d"))                    # everything
+add_budget(Budget(1.00, "12h", tag="triage"))     # just this expert
+```
+
+Once a ceiling is reached, the next call raises `BudgetError` **before the
+subprocess is spawned**, and a batch halts with one message rather than marking
+every remaining row failed.
+
+> **What a budget is not.** It is checked against spend already recorded, so it
+> is a guard rail, not a fence. With 12 calls in flight the ceiling can be
+> crossed by up to 12 calls' worth before the next check sees it, and a single
+> expensive call is not bounded by it at all — use `max_budget_usd` on the call
+> for that, which the CLI enforces server-side. Set a budget below what would
+> actually hurt.
+
+Set `CONVENE_LEDGER=0` to record nothing.
+
 ## Which account am I billing?
 
 The expensive failure mode is silent: an `ANTHROPIC_API_KEY` in the environment
@@ -288,7 +347,9 @@ caller a feature.
 | system prompt | **yes** | replaces the agent prompt entirely |
 | reasoning depth | **yes** | `effort="low".."max"` — the lever, not a token budget |
 | JSON schema output | **yes** | enforced server-side, auto-retries bad JSON |
-| per-call spend cap | **yes** | `max_budget_usd` |
+| per-call spend cap | **yes** | `max_budget_usd`, enforced server-side |
+| rolling spend ceiling | **yes** | `Budget`, checked before the call is made |
+| usage accounting | **yes** | SQLite ledger, `convene usage` |
 | usage + cost reporting | **yes** | a list-price *estimate*, not a charge |
 | multi-turn | **yes** | `Session` and `LiveSession` |
 | prompt caching | **automatic** | no breakpoint control, but see finding 2 |

@@ -55,6 +55,7 @@ from .config import (
     EffortLevel,
 )
 from .errors import SessionError
+from .ledger import check_budgets, get_ledger, recording_enabled
 from .logging_ import get_logger
 from .runtime import LOCKDOWN_FLAGS, Call, Result, run, run_sync
 
@@ -218,6 +219,35 @@ def _user_message(text: str) -> str:
     )
 
 
+def _record_turn(turn: Turn, model: str, effort: str | None) -> None:
+    """Ledger a live-session turn.
+
+    Records the **incremental** cost, not the cumulative figure the envelope
+    carries -- summing the raw field across a session triple-counts. Durable
+    sessions are not recorded here because they run through the engine, which
+    already records them.
+    """
+    if not recording_enabled():
+        return
+    try:
+        get_ledger().record(
+            tag="session",
+            context=f"sid={turn.result.session_id[:8]}",
+            model=model,
+            effort=effort,
+            input_tokens=turn.input_tokens,
+            output_tokens=turn.output_tokens,
+            cache_read_tokens=turn.result.cache_read_input_tokens,
+            cache_creation_tokens=turn.result.cache_creation_input_tokens,
+            cost_usd=turn.cost_usd,
+            elapsed_s=turn.elapsed_s,
+            session_id=turn.result.session_id,
+            kind="turn",
+        )
+    except Exception:
+        get_logger().exception("failed to write a session turn to the ledger")
+
+
 def _turn_from_envelope(
     envelope: dict[str, Any], prior_cost: float, elapsed: float, model: str
 ) -> tuple[Turn, float]:
@@ -327,6 +357,7 @@ class LiveSession:
                 f"live session process already exited with code {proc.returncode}. "
                 "Start a new LiveSession."
             )
+        check_budgets("session")
 
         start = time.monotonic()
         try:
@@ -353,6 +384,7 @@ class LiveSession:
                 )
                 self.session_id = turn.result.session_id or self.session_id
                 self.turns.append(turn)
+                _record_turn(turn, self.model, self.effort)
                 get_logger().info(
                     "live-turn model=%s elapsed=%.1fs in=%d out=%d cost=%.5f sid=%s",
                     self.model,
@@ -468,6 +500,7 @@ class AsyncLiveSession:
             raise SessionError(
                 f"live session process already exited with code {proc.returncode}"
             )
+        check_budgets("session")
 
         start = time.monotonic()
         try:
@@ -506,6 +539,7 @@ class AsyncLiveSession:
         )
         self.session_id = turn.result.session_id or self.session_id
         self.turns.append(turn)
+        _record_turn(turn, self.model, self.effort)
         return turn
 
     async def close(self) -> None:
