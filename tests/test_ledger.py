@@ -6,6 +6,7 @@ None of these spend money — they write rows directly and assert on the maths.
 from __future__ import annotations
 
 from datetime import timedelta
+from itertools import pairwise
 
 import pytest
 
@@ -240,3 +241,60 @@ def test_schema_survives_reopening(tmp_path):
     add(Ledger(path), cost=0.01)
     add(Ledger(path), cost=0.02)
     assert Ledger(path).totals().calls == 2
+
+
+def test_survives_concurrent_writers(tmp_path):
+    """The library defaults to 12-wide concurrency and documents n=20 as safe,
+    so the ledger has to take that many simultaneous writers without losing a
+    row. WAL mode plus a connection per operation "should" handle it; this
+    checks that it does.
+    """
+    import threading
+
+    ledger = Ledger(tmp_path / "concurrent.sqlite3")
+    threads_n, per_thread = 24, 25
+    errors: list[Exception] = []
+
+    def writer(i: int) -> None:
+        for _ in range(per_thread):
+            try:
+                ledger.record(tag=f"t{i % 4}", model="m", cost_usd=0.001)
+            except Exception as e:  # collected and asserted below
+                errors.append(e)
+
+    threads = [threading.Thread(target=writer, args=(i,)) for i in range(threads_n)]
+    for t in threads:
+        t.start()
+    for t in threads:
+        t.join()
+
+    assert errors == []
+    totals = ledger.totals()
+    assert totals.calls == threads_n * per_thread
+    assert totals.cost_usd == pytest.approx(threads_n * per_thread * 0.001)
+    # Grouped sums must reconcile with the overall total.
+    assert sum(t.calls for t in ledger.by_tag().values()) == totals.calls
+
+
+def test_reads_are_consistent_while_writing(tmp_path):
+    """`convene usage` is expected to work while a batch is still running."""
+    import threading
+
+    ledger = Ledger(tmp_path / "rw.sqlite3")
+    stop = threading.Event()
+
+    def write_forever() -> None:
+        while not stop.is_set():
+            ledger.record(tag="bg", model="m", cost_usd=0.0001)
+
+    writer = threading.Thread(target=write_forever)
+    writer.start()
+    try:
+        counts = [ledger.totals().calls for _ in range(50)]
+    finally:
+        stop.set()
+        writer.join()
+
+    # A reader may see any point in time, but never a decreasing count and
+    # never an error.
+    assert all(a <= b for a, b in pairwise(counts))
