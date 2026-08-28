@@ -1,5 +1,10 @@
 # convene
 
+[![PyPI](https://img.shields.io/pypi/v/convene)](https://pypi.org/project/convene/)
+[![Python](https://img.shields.io/pypi/pyversions/convene)](https://pypi.org/project/convene/)
+[![CI](https://github.com/YashShelar007/convene/actions/workflows/ci.yml/badge.svg?branch=develop)](https://github.com/YashShelar007/convene/actions/workflows/ci.yml)
+[![License](https://img.shields.io/badge/license-MIT-blue)](LICENSE)
+
 Run Claude Code headlessly as a local inference layer — named experts,
 multi-turn sessions, and bounded concurrency, on your own machine under your
 own login.
@@ -11,7 +16,7 @@ policy grounded in measurement rather than folklore, and a check that tells you
 which account is about to be billed. That is what this adds.
 
 ```bash
-pip install git+https://github.com/YashShelar007/convene@main
+pip install convene
 convene doctor          # what's set up, and whose account pays
 ```
 

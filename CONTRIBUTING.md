@@ -100,10 +100,11 @@ Each corresponds to a way this has already gone wrong, or would.
 ## Releasing
 
 Releases go out through PyPI Trusted Publishing — there is no API token in this
-repo. The one-time PyPI setup is documented at the top of
-[`.github/workflows/release.yml`](.github/workflows/release.yml).
+repo. The trusted publisher is already configured; the setup it needed is
+documented at the top of
+[`.github/workflows/release.yml`](.github/workflows/release.yml) for reference.
 
-After that, a release is:
+A release is:
 
 ```bash
 # on develop, with FINDINGS.md and the version in pyproject.toml both current
