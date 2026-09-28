@@ -3,6 +3,11 @@
 #
 #   bash docs/demo/record.sh
 #
+# To record code that is not on PyPI yet, name what to install; the demo types
+# that install line instead of `pip install convene`:
+#
+#   CONVENE_SPEC=git+https://github.com/YashShelar007/convene@BRANCH bash docs/demo/record.sh
+#
 # Needs a logged-in Claude Code, uv, jq and ffmpeg. Makes three real calls to the
 # `triage` expert in examples/experts.toml (about $0.02 at list price, drawn from
 # your subscription). Writes docs/demo/convene.{cast,gif,mp4,png}.
@@ -27,7 +32,7 @@ cd "$stage"
 uvx asciinema@2.4.0 rec --overwrite -q --cols 80 --rows 26 \
   -c "env -i HOME=$HOME USER=$USER TERM=xterm-256color LANG=en_US.UTF-8 \
       PATH=$stage/.venv/bin:$claude_bin:/usr/bin:/bin \
-      CONVENE_HOME=$stage/state PIP_DISABLE_PIP_VERSION_CHECK=1 \
+      CONVENE_HOME=$stage/state PIP_DISABLE_PIP_VERSION_CHECK=1 CONVENE_SPEC=${CONVENE_SPEC:-} \
       bash demo.sh" \
   "$demo/convene.cast"
 

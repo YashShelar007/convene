@@ -11,12 +11,13 @@ sessions, bounded concurrency, and a ledger of what every call cost.
 
 <picture>
   <source media="(prefers-reduced-motion: reduce)" srcset="https://raw.githubusercontent.com/YashShelar007/convene/develop/docs/demo/convene.png">
-  <img src="https://raw.githubusercontent.com/YashShelar007/convene/develop/docs/demo/convene.gif" alt="Terminal recording: pip install convene, then one expert triages three support tickets into billing, bug and security with 2 of 3 calls reading a warm prompt cache, then convene usage reports the spend.">
+  <img src="https://raw.githubusercontent.com/YashShelar007/convene/develop/docs/demo/convene.gif" alt="Terminal recording: convene is installed, then one expert triages three support tickets into billing, bug and security with all 3 calls reading a warm prompt cache, then convene usage reports the spend.">
 </picture>
 
-<sub>Three real calls against Claude Code 2.1.273, recorded 2026-09-28. Pauses
-longer than 1.5s are cut to 1.5s; every time and cost on screen is what convene
-printed. [MP4](https://github.com/YashShelar007/convene/blob/develop/docs/demo/convene.mp4),
+<sub>Three real calls against Claude Code 2.1.273, recorded 2026-09-28 from source
+ahead of the next PyPI release. All three read a warm cache because an earlier
+take had created it minutes before. Pauses longer than 1.5s are cut to 1.5s;
+every time and cost on screen is what convene printed. [MP4](https://github.com/YashShelar007/convene/blob/develop/docs/demo/convene.mp4),
 [raw recording](https://github.com/YashShelar007/convene/blob/develop/docs/demo/convene.cast),
 [re-record it](https://github.com/YashShelar007/convene/blob/develop/docs/demo/record.sh).</sub>
 

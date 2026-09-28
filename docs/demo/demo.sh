@@ -12,7 +12,13 @@ type_run() {
   sleep 1.2
 }
 
-type_run 'pip install -q convene && convene --version'
+# CONVENE_SPEC records unreleased code honestly: the install line on screen is
+# the one that ran. Unset, it installs the latest release from PyPI.
+if [[ -n "${CONVENE_SPEC:-}" ]]; then
+  type_run "pip install -q $CONVENE_SPEC"
+else
+  type_run 'pip install -q convene && convene --version'
+fi
 type_run 'cat tickets.jsonl'
 type_run 'convene run --expert triage --in tickets.jsonl | jq -r .output.queue'
 type_run 'convene usage'
