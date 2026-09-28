@@ -352,7 +352,7 @@ class Ledger:
             spent = self.totals(window=budget.window, tag=budget.tag).cost_usd
             if spent >= budget.limit_usd:
                 raise BudgetError(
-                    f"budget reached: {budget.describe()} — "
+                    f"budget reached: {budget.describe()}, with "
                     f"${spent:.4f} already spent in the last {budget.window}. "
                     f"Raise the limit, wait for the window to roll, or run "
                     f"`convene usage --since {budget.window}` to see where it went."

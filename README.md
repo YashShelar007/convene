@@ -3,22 +3,47 @@
 [![PyPI](https://img.shields.io/pypi/v/convene)](https://pypi.org/project/convene/)
 [![Python](https://img.shields.io/pypi/pyversions/convene)](https://pypi.org/project/convene/)
 [![CI](https://github.com/YashShelar007/convene/actions/workflows/ci.yml/badge.svg?branch=develop)](https://github.com/YashShelar007/convene/actions/workflows/ci.yml)
-[![License](https://img.shields.io/badge/license-MIT-blue)](LICENSE)
+[![License](https://img.shields.io/badge/license-MIT-blue)](https://github.com/YashShelar007/convene/blob/develop/LICENSE)
 
-Run Claude Code headlessly as a local inference layer — named experts,
-multi-turn sessions, and bounded concurrency, on your own machine under your
-own login.
+convene runs the Claude Code you are already logged into as a local inference
+layer for Python: named experts with cached system prompts, multi-turn
+sessions, bounded concurrency, and a ledger of what every call cost.
 
-`claude -p` is already a capable inference endpoint once you strip the coding
-agent off it. What it lacks is everything around the call: a way to name and
-reuse a configuration, conversations that survive a process, a concurrency
-policy grounded in measurement rather than folklore, and a check that tells you
-which account is about to be billed. That is what this adds.
+<picture>
+  <source media="(prefers-reduced-motion: reduce)" srcset="https://raw.githubusercontent.com/YashShelar007/convene/develop/docs/demo/convene.png">
+  <img src="https://raw.githubusercontent.com/YashShelar007/convene/develop/docs/demo/convene.gif" alt="Terminal recording: convene is installed, then one expert triages three support tickets into billing, bug and security with all 3 calls reading a warm prompt cache, then convene usage reports the spend.">
+</picture>
+
+<sub>Three real calls against Claude Code 2.1.273, recorded 2026-09-28 from source
+ahead of the next PyPI release. All three read a warm cache because an earlier
+take had created it minutes before. Pauses longer than 1.5s are cut to 1.5s;
+every time and cost on screen is what convene printed. [MP4](https://github.com/YashShelar007/convene/blob/develop/docs/demo/convene.mp4),
+[raw recording](https://github.com/YashShelar007/convene/blob/develop/docs/demo/convene.cast),
+[re-record it](https://github.com/YashShelar007/convene/blob/develop/docs/demo/record.sh).</sub>
+
+## Install
 
 ```bash
 pip install convene
-convene doctor          # what's set up, and whose account pays
 ```
+
+Python 3.11+, zero dependencies. The one requirement is a
+[Claude Code](https://code.claude.com/docs/en/quickstart) install you have
+already logged into.
+
+## Quickstart
+
+The demo above, on your machine:
+
+```bash
+convene doctor    # which account pays, confirmed with one live call
+curl -sO https://raw.githubusercontent.com/YashShelar007/convene/develop/examples/experts.toml
+echo '{"id": 1, "prompt": "Card declined at renewal and now none of us can log in."}' > tickets.jsonl
+convene run --expert triage --in tickets.jsonl
+convene usage
+```
+
+Or from Python:
 
 ```python
 from convene import ask, ask_json
@@ -35,9 +60,36 @@ ask_json("Extract: Ada Lovelace, born 1815.", {
 # {'name': 'Ada Lovelace', 'born': 1815}
 ```
 
-Zero dependencies. Python 3.11+. The only requirement is a working
-[Claude Code](https://code.claude.com/docs/en/quickstart) install you have
-already logged into.
+## Why this exists
+
+`claude -p` is already a capable inference endpoint once you strip the coding
+agent off it. What it lacks is everything around the call: a name for a
+configuration you reuse, conversations that outlive the process, a concurrency
+limit taken from measurement rather than folklore, and a check on which account
+is about to be billed. convene is that layer, in the standard library, with
+every number below re-runnable on your own machine.
+
+## Measured, not assumed
+
+Claude Code 2.1.237 on macOS 15 (arm64), subscription auth on a Max plan,
+`claude-sonnet-5` at `effort=low`, first published 2026-08-27. Samples are
+small and each one says so. Tables and raw figures are in
+[FINDINGS.md](https://github.com/YashShelar007/convene/blob/develop/FINDINGS.md);
+`convene bench` re-runs the cache and concurrency numbers.
+
+| Claim | Result | Method |
+|---|---|---|
+| The prompt cache survives process death | **9.5x** cheaper warm: $0.00281 against $0.02670 | Same 4.4k-token system prompt, three separate processes about 30s apart, n=1 per row |
+| Concurrency goes well past "about 5" | **~10x** throughput, 0 rate-limit errors at a burst of 20 | Identical trivial calls, one burst each at 1, 5, 10 and 20; 20 is the largest tried, not a ceiling |
+| A hot process beats `--resume` for multi-turn | **4.3x** cheaper: $0.00342 against $0.01485 | One three-turn conversation each way, n=1 |
+| The lockdown flags matter | a plain `claude -p` cost **88x** more | Identical one-word prompt, n=1; re-check with `convene doctor --lockdown` |
+| `-p` uses your subscription; `--bare` does not | ~150 calls, all succeeded | No API key in the environment for any of them |
+
+## License and releases
+
+[MIT](https://github.com/YashShelar007/convene/blob/develop/LICENSE). Every
+version is a [GitHub release](https://github.com/YashShelar007/convene/releases)
+and its release notes are the changelog.
 
 ---
 
@@ -62,22 +114,22 @@ plainly that non-bare `-p` uses your subscription login.
 
 What is *not* inside it is turning a subscription into an API for other
 software. Between January and April 2026 Anthropic
-[blocked exactly that](https://venturebeat.com/technology/anthropic-cuts-off-the-ability-to-use-claude-subscriptions-with-openclaw-and)
-— OpenClaw, OpenCode, Cline, Aider and the OpenAI-compatible proxies. The
+[blocked exactly that](https://venturebeat.com/technology/anthropic-cuts-off-the-ability-to-use-claude-subscriptions-with-openclaw-and):
+OpenClaw, OpenCode, Cline, Aider and the OpenAI-compatible proxies. The
 common factor in every tool that got cut off was **exposing the subscription as
 an endpoint to other programs.**
 
 So convene will not grow an HTTP server, an OpenAI-compatible shim, or a
 credential-forwarding mode, and pull requests adding them will be declined.
 This is a scope decision, not legal advice; read the terms yourself and decide
-what you are comfortable with. Locality is not the test — the carve-out is.
+what you are comfortable with. The test is the carve-out, not locality.
 
 ---
 
 ## What this measured that the folklore gets wrong
 
 Every number is reproducible with `convene bench`; the full tables, with
-sample sizes and build versions, are in [FINDINGS.md](FINDINGS.md).
+sample sizes and build versions, are in [FINDINGS.md](https://github.com/YashShelar007/convene/blob/develop/FINDINGS.md).
 
 **1. `claude -p` uses your subscription. `--bare` is the one that doesn't.**
 The widely repeated claim that `-p` "bypasses OAuth and requires an API key" is
@@ -159,8 +211,8 @@ Two ways to get that wrong, both checked:
 convene experts lint
 ```
 
-- A prompt too short to cache — every call pays full price.
-- A prompt interpolated per call (`{}`, `%s`) — changing the prefix misses the
+- A prompt too short to cache: every call pays full price.
+- A prompt interpolated per call (`{}`, `%s`): changing the prefix misses the
   cache every single time. Per-call data belongs in the user prompt.
 
 ### Running one over a batch
@@ -170,7 +222,7 @@ convene run --expert triage --in tickets.jsonl --out results.jsonl
 ```
 
 Bounded concurrency, resumable (a rerun skips ids already in `--out`), and it
-warms the cache with one serial call before releasing the rest — so the batch
+warms the cache with one serial call before releasing the rest, so the batch
 pays to *create* the cache entry once instead of once per call.
 
 ```
@@ -186,7 +238,7 @@ await consult(["security", "performance", "style"], diff_text)
 # {'security': Result(...), 'performance': Result(...), 'style': Result(...)}
 ```
 
-A failing expert returns its exception rather than sinking the panel — the
+A failing expert returns its exception rather than sinking the panel. The
 useful thing about asking five specialists is usually the four who answered.
 
 ---
@@ -220,11 +272,11 @@ async with SessionPool(size=4, system_prompt=RUBRIC) as pool:
         turn = await session.ask("...")
 ```
 
-A pooled session keeps its history between checkouts — that is the point when
+A pooled session keeps its history between checkouts. That is the point when
 you want shared accumulated context, and a bug when you don't. Pass
 `reset_between=True` for a fresh process per checkout.
 
-> **Cost gotcha.** The two paths report `total_cost_usd` differently — per call
+> **Cost gotcha.** The two paths report `total_cost_usd` differently: per call
 > for durable sessions, **cumulative** for live ones. Summing the raw field
 > across a live session triple-counts. `Turn.cost_usd` is always the
 > incremental figure; the raw one stays on `turn.result.cost_usd`.
@@ -234,7 +286,7 @@ you want shared accumulated context, and a bug when you don't. Pass
 ## Spend
 
 Every call is recorded to a SQLite ledger at `~/.convene/ledger.sqlite3`.
-**Prompts and responses are never stored** — it is for accounting, not
+**Prompts and responses are never stored.** It is for accounting, not
 transcripts, so it stays safe to hand to someone who should not see your data.
 
 ```bash
@@ -249,7 +301,7 @@ convene usage --since 7d
   TOTAL            14      $0.1840    $0.01314       43%       0.0s
 
   note: 'badprompt' read a warm cache on only 0% of 8 calls. Its system prompt
-  is likely too short, unstable, or interpolated per call — `convene experts
+  is likely too short, unstable, or interpolated per call. `convene experts
   lint` will say which.
 ```
 
@@ -284,7 +336,7 @@ every remaining row failed.
 > **What a budget is not.** It is checked against spend already recorded, so it
 > is a guard rail, not a fence. With 12 calls in flight the ceiling can be
 > crossed by up to 12 calls' worth before the next check sees it, and a single
-> expensive call is not bounded by it at all — use `max_budget_usd` on the call
+> expensive call is not bounded by it at all; use `max_budget_usd` on the call
 > for that, which the CLI enforces server-side. Set a budget below what would
 > actually hurt.
 
@@ -321,7 +373,7 @@ assert_account("you@example.com")   # raises on wrong account, or an API key tak
 
 The live probe is not decoration. Anthropic's docs say `--bare` *"will become
 the default for `-p` in a future release"*, and bare mode never reads OAuth. If
-that lands, this whole approach stops working — the probe finds out with a real
+that lands, this whole approach stops working, and the probe finds out with a real
 call rather than guessing from a version string.
 
 ### Auth modes
@@ -332,7 +384,7 @@ call rather than guessing from a version string.
 | `SANDBOX_TOKEN` | its own long-lived token, isolated `HOME` | `convene setup-token` | your subscription |
 | `API_KEY` | `ANTHROPIC_API_KEY` | set the variable | API credits |
 
-`API_KEY` works but is never selected implicitly — you have to name it.
+`API_KEY` works but is never selected implicitly: you have to name it.
 
 ---
 
@@ -345,7 +397,7 @@ caller a feature.
 |---|---|---|
 | model choice | **yes** | aliases and full ids both resolve |
 | system prompt | **yes** | replaces the agent prompt entirely |
-| reasoning depth | **yes** | `effort="low".."max"` — the lever, not a token budget |
+| reasoning depth | **yes** | `effort="low".."max"`, the lever instead of a token budget |
 | JSON schema output | **yes** | enforced server-side, auto-retries bad JSON |
 | per-call spend cap | **yes** | `max_budget_usd`, enforced server-side |
 | rolling spend ceiling | **yes** | `Budget`, checked before the call is made |
@@ -362,8 +414,8 @@ caller a feature.
 | token counting endpoint | **no** | |
 | Batch API (50% off) | **no** | |
 
-Latency is ~3–9s per call. If you need sub-second responses, `max_tokens`
-control, or the Batch API, use the `anthropic` SDK with an API key — and say so
+Latency is 3 to 9s per call. If you need sub-second responses, `max_tokens`
+control, or the Batch API, use the `anthropic` SDK with an API key, and say so
 plainly rather than working around it here.
 
 ---
@@ -376,11 +428,11 @@ different shape suits you better:
 | Project | Shape | Notes |
 |---|---|---|
 | [Claude Agent SDK](https://code.claude.com/docs/en/agent-sdk/overview) | first-party | Python and TypeScript. The supported path for agentic work. Start here unless you specifically want inference-shaped calls |
-| [RichardAtCT/claude-code-openai-wrapper](https://github.com/RichardAtCT/claude-code-openai-wrapper) | OpenAI-compatible server | What convene deliberately is not — see *Scope* above |
+| [RichardAtCT/claude-code-openai-wrapper](https://github.com/RichardAtCT/claude-code-openai-wrapper) | OpenAI-compatible server | What convene deliberately is not; see *Scope* above |
 | [dtzp555-max/ocp](https://github.com/dtzp555-max/ocp) | OpenAI-compatible server | LAN auth, per-key quotas, response cache |
 
-The difference convene is going for is not features, it is **verified claims**
-— every number in [FINDINGS.md](FINDINGS.md) carries its sample size and the
+The difference convene is going for is not features, it is **verified claims**:
+every number in [FINDINGS.md](https://github.com/YashShelar007/convene/blob/develop/FINDINGS.md) carries its sample size and the
 build it came from, and `convene bench` re-runs them on your machine.
 
 ---
@@ -389,12 +441,12 @@ build it came from, and `convene bench` re-runs them on your machine.
 
 1. **Auth failure returns `subtype: "success"` and exit code 0.** `is_error` is
    the only reliable signal. Handled; don't "simplify" that check.
-2. **Never drop the lockdown flags.** A plain `claude -p` costs ~88x more —
+2. **Never drop the lockdown flags.** A plain `claude -p` costs ~88x more;
    verify on your own machine with `convene doctor --lockdown`.
 3. **Never add `--bare`.** It forces API-key auth and never reads OAuth.
 4. **stdout is pure JSON; warnings go to stderr.** Don't merge the streams.
 5. **`result_text` vs `structured_output`.** With a schema, read
-   `structured_output` — it is already a parsed dict.
+   `structured_output`, which is already a parsed dict.
 6. **A long session is a growing prompt.** Input tokens climb every turn.
 
 ---
@@ -422,9 +474,9 @@ State moved from `./data` and `./logs` to `~/.convene`, overridable with
 
 ## Contributing
 
-The most valuable contribution is usually a **measurement**, not a patch — see
-[CONTRIBUTING.md](CONTRIBUTING.md) for the standard every empirical claim has
-to meet, and [ROADMAP.md](ROADMAP.md) for what is planned and what is
+The most valuable contribution is usually a **measurement**, not a patch. See
+[CONTRIBUTING.md](https://github.com/YashShelar007/convene/blob/develop/CONTRIBUTING.md) for the standard every empirical claim has
+to meet, and [ROADMAP.md](https://github.com/YashShelar007/convene/blob/develop/ROADMAP.md) for what is planned and what is
 deliberately out of scope.
 
-[MIT](LICENSE).
+[MIT](https://github.com/YashShelar007/convene/blob/develop/LICENSE).

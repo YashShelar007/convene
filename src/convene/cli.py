@@ -470,10 +470,10 @@ def cmd_usage(args: argparse.Namespace) -> int:
         print(f"No calls recorded in the last {args.since}.")
         print(f"  ledger: {ledger.path}")
         if not had_ledger:
-            print("  (nothing recorded yet — make a call, or check CONVENE_LEDGER)")
+            print("  (nothing recorded yet: make a call, or check CONVENE_LEDGER)")
         return 0
 
-    print(f"convene usage — last {args.since}\n")
+    print(f"convene usage, last {args.since}\n")
 
     groups: dict[str, Totals]
     if args.by == "tag":
@@ -503,7 +503,7 @@ def cmd_usage(args: argparse.Namespace) -> int:
                     f"  note: {name!r} read a warm cache on only "
                     f"{t.cache_hit_rate * 100:.0f}% of {t.calls} calls. Its system "
                     f"prompt is likely too short, unstable, or interpolated per "
-                    f"call — `convene experts lint` will say which."
+                    f"call. `convene experts lint` will say which."
                 )
 
     if args.verbose:
