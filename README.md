@@ -3,22 +3,43 @@
 [![PyPI](https://img.shields.io/pypi/v/convene)](https://pypi.org/project/convene/)
 [![Python](https://img.shields.io/pypi/pyversions/convene)](https://pypi.org/project/convene/)
 [![CI](https://github.com/YashShelar007/convene/actions/workflows/ci.yml/badge.svg?branch=develop)](https://github.com/YashShelar007/convene/actions/workflows/ci.yml)
-[![License](https://img.shields.io/badge/license-MIT-blue)](LICENSE)
+[![License](https://img.shields.io/badge/license-MIT-blue)](https://github.com/YashShelar007/convene/blob/develop/LICENSE)
 
-Run Claude Code headlessly as a local inference layer — named experts,
-multi-turn sessions, and bounded concurrency, on your own machine under your
-own login.
+convene runs the Claude Code you are already logged into as a local inference
+layer for Python: named experts with cached system prompts, multi-turn
+sessions, bounded concurrency, and a ledger of what every call cost.
 
-`claude -p` is already a capable inference endpoint once you strip the coding
-agent off it. What it lacks is everything around the call: a way to name and
-reuse a configuration, conversations that survive a process, a concurrency
-policy grounded in measurement rather than folklore, and a check that tells you
-which account is about to be billed. That is what this adds.
+![Terminal recording: pip install convene, then one expert triages three support tickets into billing, bug and security with 2 of 3 calls reading a warm prompt cache, then convene usage reports the spend.](https://raw.githubusercontent.com/YashShelar007/convene/develop/docs/demo/convene.gif)
+
+<sub>Three real calls against Claude Code 2.1.273, recorded 2026-09-28. Pauses
+longer than 1.5s are cut to 1.5s; every time and cost on screen is what convene
+printed. [MP4](https://github.com/YashShelar007/convene/blob/develop/docs/demo/convene.mp4),
+[raw recording](https://github.com/YashShelar007/convene/blob/develop/docs/demo/convene.cast),
+[re-record it](https://github.com/YashShelar007/convene/blob/develop/docs/demo/record.sh).</sub>
+
+## Install
 
 ```bash
 pip install convene
-convene doctor          # what's set up, and whose account pays
 ```
+
+Python 3.11+, zero dependencies. The one requirement is a
+[Claude Code](https://code.claude.com/docs/en/quickstart) install you have
+already logged into.
+
+## Quickstart
+
+The demo above, on your machine:
+
+```bash
+convene doctor    # which account pays, confirmed with one live call
+curl -sO https://raw.githubusercontent.com/YashShelar007/convene/develop/examples/experts.toml
+echo '{"id": 1, "prompt": "Card declined at renewal and now none of us can log in."}' > tickets.jsonl
+convene run --expert triage --in tickets.jsonl
+convene usage
+```
+
+Or from Python:
 
 ```python
 from convene import ask, ask_json
@@ -35,9 +56,36 @@ ask_json("Extract: Ada Lovelace, born 1815.", {
 # {'name': 'Ada Lovelace', 'born': 1815}
 ```
 
-Zero dependencies. Python 3.11+. The only requirement is a working
-[Claude Code](https://code.claude.com/docs/en/quickstart) install you have
-already logged into.
+## Why this exists
+
+`claude -p` is already a capable inference endpoint once you strip the coding
+agent off it. What it lacks is everything around the call: a name for a
+configuration you reuse, conversations that outlive the process, a concurrency
+limit taken from measurement rather than folklore, and a check on which account
+is about to be billed. convene is that layer, in the standard library, with
+every number below re-runnable on your own machine.
+
+## Measured, not assumed
+
+Claude Code 2.1.237 on macOS 15 (arm64), subscription auth on a Max plan,
+`claude-sonnet-5` at `effort=low`, first published 2026-08-27. Samples are
+small and each one says so. Tables and raw figures are in
+[FINDINGS.md](https://github.com/YashShelar007/convene/blob/develop/FINDINGS.md);
+`convene bench` re-runs the cache and concurrency numbers.
+
+| Claim | Result | Method |
+|---|---|---|
+| The prompt cache survives process death | **9.5x** cheaper warm: $0.00281 against $0.02670 | Same 4.4k-token system prompt, three separate processes about 30s apart, n=1 per row |
+| Concurrency goes well past "about 5" | **~10x** throughput, 0 rate-limit errors at a burst of 20 | Identical trivial calls, one burst each at 1, 5, 10 and 20; 20 is the largest tried, not a ceiling |
+| A hot process beats `--resume` for multi-turn | **4.3x** cheaper: $0.00342 against $0.01485 | One three-turn conversation each way, n=1 |
+| The lockdown flags matter | a plain `claude -p` cost **88x** more | Identical one-word prompt, n=1; re-check with `convene doctor --lockdown` |
+| `-p` uses your subscription; `--bare` does not | ~150 calls, all succeeded | No API key in the environment for any of them |
+
+## License and releases
+
+[MIT](https://github.com/YashShelar007/convene/blob/develop/LICENSE). Every
+version is a [GitHub release](https://github.com/YashShelar007/convene/releases)
+and its release notes are the changelog.
 
 ---
 
@@ -77,7 +125,7 @@ what you are comfortable with. Locality is not the test — the carve-out is.
 ## What this measured that the folklore gets wrong
 
 Every number is reproducible with `convene bench`; the full tables, with
-sample sizes and build versions, are in [FINDINGS.md](FINDINGS.md).
+sample sizes and build versions, are in [FINDINGS.md](https://github.com/YashShelar007/convene/blob/develop/FINDINGS.md).
 
 **1. `claude -p` uses your subscription. `--bare` is the one that doesn't.**
 The widely repeated claim that `-p` "bypasses OAuth and requires an API key" is
@@ -380,7 +428,7 @@ different shape suits you better:
 | [dtzp555-max/ocp](https://github.com/dtzp555-max/ocp) | OpenAI-compatible server | LAN auth, per-key quotas, response cache |
 
 The difference convene is going for is not features, it is **verified claims**
-— every number in [FINDINGS.md](FINDINGS.md) carries its sample size and the
+— every number in [FINDINGS.md](https://github.com/YashShelar007/convene/blob/develop/FINDINGS.md) carries its sample size and the
 build it came from, and `convene bench` re-runs them on your machine.
 
 ---
@@ -423,8 +471,8 @@ State moved from `./data` and `./logs` to `~/.convene`, overridable with
 ## Contributing
 
 The most valuable contribution is usually a **measurement**, not a patch — see
-[CONTRIBUTING.md](CONTRIBUTING.md) for the standard every empirical claim has
-to meet, and [ROADMAP.md](ROADMAP.md) for what is planned and what is
+[CONTRIBUTING.md](https://github.com/YashShelar007/convene/blob/develop/CONTRIBUTING.md) for the standard every empirical claim has
+to meet, and [ROADMAP.md](https://github.com/YashShelar007/convene/blob/develop/ROADMAP.md) for what is planned and what is
 deliberately out of scope.
 
-[MIT](LICENSE).
+[MIT](https://github.com/YashShelar007/convene/blob/develop/LICENSE).

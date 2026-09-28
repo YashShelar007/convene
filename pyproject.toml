@@ -35,9 +35,14 @@ convene = "convene.cli:main"
 Homepage = "https://github.com/YashShelar007/convene"
 Issues = "https://github.com/YashShelar007/convene/issues"
 Findings = "https://github.com/YashShelar007/convene/blob/main/FINDINGS.md"
+Changelog = "https://github.com/YashShelar007/convene/releases"
 
 [tool.hatch.build.targets.wheel]
 packages = ["src/convene"]
+
+# The README demo (GIF, MP4, raw cast) is for GitHub, not for installs.
+[tool.hatch.build.targets.sdist]
+exclude = ["docs/demo"]
 
 [tool.pytest.ini_options]
 testpaths = ["tests"]
