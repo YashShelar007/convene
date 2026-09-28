@@ -9,7 +9,10 @@ convene runs the Claude Code you are already logged into as a local inference
 layer for Python: named experts with cached system prompts, multi-turn
 sessions, bounded concurrency, and a ledger of what every call cost.
 
-![Terminal recording: pip install convene, then one expert triages three support tickets into billing, bug and security with 2 of 3 calls reading a warm prompt cache, then convene usage reports the spend.](https://raw.githubusercontent.com/YashShelar007/convene/develop/docs/demo/convene.gif)
+<picture>
+  <source media="(prefers-reduced-motion: reduce)" srcset="https://raw.githubusercontent.com/YashShelar007/convene/develop/docs/demo/convene.png">
+  <img src="https://raw.githubusercontent.com/YashShelar007/convene/develop/docs/demo/convene.gif" alt="Terminal recording: pip install convene, then one expert triages three support tickets into billing, bug and security with 2 of 3 calls reading a warm prompt cache, then convene usage reports the spend.">
+</picture>
 
 <sub>Three real calls against Claude Code 2.1.273, recorded 2026-09-28. Pauses
 longer than 1.5s are cut to 1.5s; every time and cost on screen is what convene
