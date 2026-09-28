@@ -16,8 +16,8 @@ which assertions are backed by how much evidence. That shapes everything below.
 - Maintainers push to `develop` directly for doc fixes and verified findings.
   Outside contributions come as PRs.
 
-Releases are tagged when a **claim set** changes — a new measurement, a
-retraction, a corrected derivation — or when the API changes. The version
+Releases are tagged when a **claim set** changes (a new measurement, a
+retraction, a corrected derivation) or when the API changes. The version
 people cite should match what they read.
 
 ## The claim standard
@@ -45,16 +45,16 @@ cannot be checked.
 
 The open questions are tracked as issues and listed with their effort level at
 the bottom of [FINDINGS.md](FINDINGS.md#what-has-not-been-measured). The three
-marked *good first issue* need no knowledge of the codebase at all — you run a
+marked *good first issue* need no knowledge of the codebase at all: you run a
 command and paste the output.
 
 The highest-value ones:
 
-1. **[#9](https://github.com/YashShelar007/convene/issues/9) — a Linux or
+1. **[#9](https://github.com/YashShelar007/convene/issues/9): a Linux or
    Windows column.** Every number in FINDINGS.md is macOS arm64.
-2. **[#6](https://github.com/YashShelar007/convene/issues/6) — the real
+2. **[#6](https://github.com/YashShelar007/convene/issues/6): the real
    concurrency ceiling.** n=20 is the largest burst anyone has tried.
-3. **[#11](https://github.com/YashShelar007/convene/issues/11) — whether
+3. **[#11](https://github.com/YashShelar007/convene/issues/11): whether
    `--bare` has become the `-p` default** in a newer build. That would break
    subscription auth entirely, and would not announce itself.
 4. **Counter-examples.** A run that contradicts a table in FINDINGS.md is worth
@@ -74,7 +74,7 @@ change any of them will be declined regardless of quality:
 
 - **No network endpoint.** No HTTP server, no OpenAI-compatible shim, no
   daemon that other machines or programs can call. See *Scope* in the README
-  for why — this is the exact shape Anthropic blocked in 2026.
+  for why. This is the exact shape Anthropic blocked in 2026.
 - **No credential extraction or forwarding.** The library reads no token files
   it did not create, and sends credentials nowhere.
 - **No silent API-key fallback.** `AuthMode.API_KEY` must never be selected
@@ -108,8 +108,8 @@ Each corresponds to a way this has already gone wrong, or would.
 
 ## Releasing
 
-Releases go out through PyPI Trusted Publishing — there is no API token in this
-repo. The trusted publisher is already configured; the setup it needed is
+Releases go out through PyPI Trusted Publishing, so there is no API token in
+this repo. The trusted publisher is already configured; the setup it needed is
 documented at the top of
 [`.github/workflows/release.yml`](.github/workflows/release.yml) for reference.
 
