@@ -85,7 +85,7 @@ from .sessions import (
     Turn,
 )
 
-__version__ = "0.2.0"
+__version__ = "0.2.1"
 
 # Grouped by concept rather than sorted: this list doubles as the shape of the
 # public API, and alphabetising it would scatter each group.

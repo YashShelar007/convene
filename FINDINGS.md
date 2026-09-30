@@ -2,7 +2,7 @@
 
 Measured behaviour of `claude -p` used as an inference endpoint. Everything
 here carries its sample size and the build it came from, because this document
-is the product — the code is a thin wrapper around these facts.
+is the product. The code is a thin wrapper around these facts.
 
 Reproduce any of it with:
 
@@ -69,7 +69,7 @@ The practical consequence inverts ordinary prompt advice: a long, *stable*
 system prompt is the cheap option, and a short one you retune per call is the
 expensive one. This is the entire argument for the expert registry.
 
-Confirmed independently on a real workload — the `triage` expert in
+Confirmed independently on a real workload: the `triage` expert in
 [`examples/experts.toml`](examples/experts.toml), 5 support tickets, warm-up
 enabled (n=1 run):
 
@@ -112,9 +112,9 @@ Two things this table shows that are easy to miss:
 
 ### Chars per token, and why the lint under-estimates
 
-The sweep above gives 2.78–3.04 chars/token, but it repeats one sentence, and
-repetitive text tokenises unusually well. The structured `triage` prompt —
-markdown headings, short lines, lists — measured **2.2 chars/token** (2976
+The sweep above gives 2.78 to 3.04 chars/token, but it repeats one sentence, and
+repetitive text tokenises unusually well. The structured `triage` prompt, with
+markdown headings, short lines and lists, measured **2.2 chars/token** (2976
 chars against ~1354 system tokens).
 
 `convene experts lint` uses 2.9, which therefore *under*-estimates real
@@ -134,7 +134,7 @@ Identical trivial calls, one burst per row, no retries (n=1 burst per row):
 | 10 | 9.9s | 7.0 / 7.2 / 9.8 | 0 |
 | 20 | 12.1s | 8.9 / 10.4 / 12.0 | 0 |
 
-Throughput climbs from 0.16 to 1.65 calls/second — about **10x** — with zero
+Throughput climbs from 0.16 to 1.65 calls/second, about **10x**, with zero
 rate-limit errors. Latency degrades gracefully rather than failing.
 
 **This is not a discovered ceiling.** Nobody has found where it actually
@@ -161,7 +161,7 @@ kinds answered 42 then 82, so both retained state (n=1 each):
 The hot process was **4.3x cheaper** for the same conversation, because
 `--resume` re-establishes context from disk on every turn.
 
-Use `Session` anyway when the conversation must outlive the program — it is on
+Use `Session` anyway when the conversation must outlive the program: it is on
 disk and resumable tomorrow, from any working directory since Claude Code
 2.1.223. Use `LiveSession` when it does not.
 
@@ -227,13 +227,22 @@ convene doctor --lockdown
 
 ## What has not been measured
 
-Contributions welcome — see [CONTRIBUTING.md](CONTRIBUTING.md).
+Each of these is an open issue. A run that **contradicts** a table above is
+worth more than another confirmation of it, and "observed once" is a perfectly
+good claim as long as it says so. See
+[CONTRIBUTING.md](CONTRIBUTING.md#the-claim-standard) for the standard.
 
-1. **The real concurrency ceiling.** n=20 is the largest burst tried.
-2. **Haiku's cache threshold.** Documented as 2048 tokens; unverified here.
-3. **Cache TTL on this path.** Warm reads were ~30s apart. How long an entry
-   survives is unknown.
-4. **Linux and Windows.** Every number above is macOS arm64.
-5. **Rate-limit behaviour at the weekly cap.** No measurement of what a
-   subscription limit looks like in the envelope.
-6. **Whether `--bare` has become the `-p` default** in any build after 2.1.237.
+| # | Question | Effort |
+|---|---|---|
+| [#6](https://github.com/YashShelar007/convene/issues/6) | **The real concurrency ceiling.** n=20 is the largest burst tried, not a limit anyone found. | easy to run |
+| [#7](https://github.com/YashShelar007/convene/issues/7) | **Haiku's cache threshold.** Documented as 2048 tokens; unverified here, and `experts lint` assumes ~1024 for every model. | good first issue |
+| [#8](https://github.com/YashShelar007/convene/issues/8) | **Cache TTL on this path.** Warm reads were ~30s apart. How long an entry survives is unknown. | slow, mostly waiting |
+| [#9](https://github.com/YashShelar007/convene/issues/9) | **Linux and Windows.** Every number above is macOS arm64. | good first issue |
+| [#10](https://github.com/YashShelar007/convene/issues/10) | **Rate-limit behaviour at the subscription cap.** Unknown whether it is distinguishable from an auth failure, which matters because both may exit 0. | opportunistic |
+| [#11](https://github.com/YashShelar007/convene/issues/11) | **Whether `--bare` has become the `-p` default** in any build after 2.1.237. This one would break subscription auth entirely. | good first issue |
+
+Reproduce the existing numbers first:
+
+```bash
+convene bench
+```

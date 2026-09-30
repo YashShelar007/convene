@@ -1,6 +1,6 @@
 """Spend accounting and budget ceilings.
 
-None of these spend money — they write rows directly and assert on the maths.
+None of these spend money: they write rows directly and assert on the maths.
 """
 
 from __future__ import annotations
